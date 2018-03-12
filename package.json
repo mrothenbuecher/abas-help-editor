@@ -1,0 +1,29 @@
+{
+  "name": "abas-help-editor",
+  "version": "0.0.1",
+  "description": "Editor for the abas ERP custom help files",
+  "main": "server.js",
+  "scripts": {
+    "build": "node_modules/.bin/browserify client.js -o public/dist/bundle.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npm run build && node server.js"
+  },
+  "keywords": [
+    "abas",
+    "markdown",
+    "share"
+  ],
+  "author": "Michael Rothenbücher <ich@m-rothenbuecher.de>",
+  "license": "ISC",
+  "dependencies": {
+    "ejs": "^2.5.7",
+    "express": "^4.14.0",
+    "sharedb": "^1.0.0-beta",
+    "sharedb-string-binding": "^1.0.0",
+    "websocket-json-stream": "^0.0.1",
+    "ws": "^1.1.0"
+  },
+  "devDependencies": {
+    "browserify": "^13.0.1"
+  }
+}
