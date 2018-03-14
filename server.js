@@ -1,10 +1,12 @@
+const config = require('./config.js').getConfig();
+
 var http = require('http');
 var express = require('express');
 var ShareDB = require('sharedb');
 var WebSocket = require('ws');
 var WebSocketJSONStream = require('websocket-json-stream');
 
-var backend = new ShareDB();
+var share = new ShareDB();
 
 
 createDoc(startServer);
@@ -16,8 +18,7 @@ function createDoc(callback, docName) {
     docName = "text";
   }
 
-  var connection = backend.connect();
-  console.log(callback);
+  var connection = share.connect();
   var doc = connection.get('abas-help-editor', docName);
   doc.fetch(function(err) {
     if (err) throw err;
@@ -27,6 +28,7 @@ function createDoc(callback, docName) {
     }
     callback();
   });
+
 }
 var app;
 
@@ -41,11 +43,10 @@ function startServer() {
 
     // routes for app
     app.get('/', function(req, res) {
-      res.render('pad');
+      res.render('main');
     });
-    app.get('/(:id)', function(req, res) {
+    app.get('/edit/(:id)', function(req, res) {
       var docName = req.params.id;
-      // console.log("Log - id: ", docName);
       if (docName && docName !== "favicon.ico") {
         createDoc(startServer, docName)
       }
@@ -61,10 +62,16 @@ function startServer() {
     });
     wss.on('connection', function(ws, req) {
       var stream = new WebSocketJSONStream(ws);
-      backend.listen(stream);
+      share.listen(stream);
     });
 
-    server.listen(8000);
-    console.log('Listening on http://localhost:8000');
+    if (config.public) {
+      server.listen(config.port);
+      console.log('Listening on http://<public>:' + config.port);
+    } else {
+      server.listen(config.port, 'localhost');
+      console.log('Listening on http://localhost:' + config.port);
+    }
+
   }
 }

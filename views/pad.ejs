@@ -5,44 +5,46 @@
 
 <head>
   <title>abas help editor</title>
-  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
-  <link href="style.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
+  <link href="/style.css" rel="stylesheet">
 </head>
 
 <body class="container-fluid">
-
   <section id="container" class="row">
-    <textarea autofocus class="col-xs-6 full-height" id="pad">
-# Realtime Markdown Editor
-
-### What is this?
-
-Type your markdown into the box on the left and immediately see if on the box on the right. If you send a friend a link to a pad URL (other than the home page) you both can edit the document at the same time!
-
-### How to use this?
-
-Type anything after the slash in "https://realtimemarkdown.herokuapp.com/" and just start creating markdown. If you don't feel typing in the address bar, feel free to go to one of these markdown pads:
-
-- [https://realtimemarkdown.herokuapp.com/sample](https://realtimemarkdown.herokuapp.com/sample)
-- [https://realtimemarkdown.herokuapp.com/my_project](https://realtimemarkdown.herokuapp.com/my_project)
-- [https://realtimemarkdown.herokuapp.com/whatever](https://realtimemarkdown.herokuapp.com/whatever)
-
-### How was this built?
-
-This website uses the following to work:
-
- - [Markdown](https://github.com/showdownjs/showdown) - Converts markdown text to beautiful HTML
- - [ShareJS](http://sharejs.org/) - allows for realtime editing of this textbox
- - [Node.js](https://nodejs.org/) - backend framework
- - [Redis](http://redis.io/) - where we store our markdown documents
- - [Twitter Bootstrap](http://getbootstrap.com/) - makes everything a little prettier
-        </textarea>
-    <div class="col-xs-6 full-height" id="markdown"></div>
+    <div class="full-height" id="input">
+      <textarea autofocus id="pad"></textarea>
+      <div class="info">Eingabe</div>
+    </div>
+    <div class="full-height" id="output">
+      <div id="html">
+        <div id="html-content"></div>
+        <div class="info">HTML</div>
+      </div>
+      <div id="xml">
+        <div id="xml-content"></div>
+        <div class="info">XML</div>
+      </div>
+    </div>
   </section>
+  <nav class="navbar fixed-bottom navbar-dark bg-dark">
+    <a class="navbar-brand" href="#">Menu</a>
+  </nav>
 
-  <script src="https://cdn.rawgit.com/showdownjs/showdown/1.0.2/dist/showdown.min.js"></script>
-  <script src="dist/bundle.js"></script>
-  <script src="script.js"></script>
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/showdown/1.8.6/showdown.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+  <script src="https://unpkg.com/split.js/split.min.js"></script>
+  <script src="/dist/bundle.js"></script>
+  <script src="/markdown/abas-markdown-xml.js"></script>
+
+  <script src="/channel/bcsocket.js"></script>
+  		<script src="/share/share.uncompressed.js"></script>
+  		<script src="/share/textarea.js"></script>
+
+  <script src="/script.js"></script>
 
 </body>
 

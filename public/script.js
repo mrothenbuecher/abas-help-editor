@@ -1,7 +1,19 @@
 window.onload = function() {
   var converter = new showdown.Converter();
   var pad = document.getElementById('pad');
-  var markdownArea = document.getElementById('markdown');
+  var htmlArea = document.getElementById('html-content');
+  var xmlArea = document.getElementById('xml-content');
+
+  console.log(markdownxml);
+
+  Split([ '#input', '#output'], {
+    sizes: [50, 50]
+  });
+
+  Split(['#html', '#xml'], {
+    sizes: [50, 50],
+    direction: 'vertical'
+  });
 
   // make the tab act like a tab
   pad.addEventListener('keydown', function(e) {
@@ -32,8 +44,11 @@ window.onload = function() {
   var convertTextAreaToMarkdown = function() {
     var markdownText = pad.value;
     previousMarkdownValue = markdownText;
+    //console.log("XML: ",markdownxml);
     html = converter.makeHtml(markdownText);
-    markdownArea.innerHTML = html;
+    xml = markdownxml.parse(markdownText);
+    htmlArea.innerHTML = html;
+    xmlArea.innerHTML = html;
   };
 
   var didChangeOccur = function() {
@@ -52,22 +67,6 @@ window.onload = function() {
 
   // convert textarea on input change
   pad.addEventListener('input', convertTextAreaToMarkdown);
-
-  // ignore if on home page
-  if (document.location.pathname.length > 1) {
-    // implement share js
-    var docName = document.location.pathname.substring(1);
-
-    if (!docName) {
-      docName = "text";
-    }
-
-    sharejs.open(docName, 'abas-help-editor', function(error, doc) {
-      doc.attach_textarea(pad);
-      convertTextAreaToMarkdown();
-    });
-
-  }
 
   // convert on page load
   convertTextAreaToMarkdown();

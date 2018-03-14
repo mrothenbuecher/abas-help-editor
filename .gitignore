@@ -59,3 +59,15 @@ typings/
 
 # next.js build output
 .next
+
+# generated js file
+public/dist/*
+public/dist/bundle.js
+
+
+
+
+#
+xml/*
+dtd/*
+md/*
