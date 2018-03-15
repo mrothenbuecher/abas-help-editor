@@ -1,19 +1,46 @@
+if (!String.prototype.encodeHTML) {
+  String.prototype.encodeHTML = function() {
+    return this.replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&apos;')
+      .replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;');
+  };
+}
+
+if (!String.prototype.decodeHTML) {
+  String.prototype.decodeHTML = function() {
+    return this.replace(/&apos;/g, "'")
+      .replace(/&quot;/g, '"')
+      .replace(/&gt;/g, '>')
+      .replace(/&lt;/g, '<')
+      .replace(/&amp;/g, '&')
+      .replace(/&nbsp;&nbsp;&nbsp;&nbsp;/g, '\t');
+  };
+}
+
 window.onload = function() {
-  var converter = new showdown.Converter();
+  //var converter = new showdown.Converter();
   var pad = document.getElementById('pad');
-  var htmlArea = document.getElementById('html-content');
+  //var htmlArea = document.getElementById('html-content');
   var xmlArea = document.getElementById('xml-content');
 
-  console.log(markdownxml);
-
-  Split([ '#input', '#output'], {
+/*
+  Split(['#input', '#output'], {
     sizes: [50, 50]
   });
+
 
   Split(['#html', '#xml'], {
     sizes: [50, 50],
     direction: 'vertical'
   });
+*/
+
+Split(['#input', '#xml'], {
+  sizes: [50, 50]
+});
 
   // make the tab act like a tab
   pad.addEventListener('keydown', function(e) {
@@ -45,10 +72,10 @@ window.onload = function() {
     var markdownText = pad.value;
     previousMarkdownValue = markdownText;
     //console.log("XML: ",markdownxml);
-    html = converter.makeHtml(markdownText);
-    xml = markdownxml.parse(markdownText);
-    htmlArea.innerHTML = html;
-    xmlArea.innerHTML = html;
+    //html = converter.makeHtml(markdownText);
+    xml = markdownxml.getPlainXml(markdownText);
+    //htmlArea.innerHTML = html;
+    xmlArea.innerHTML = xml.encodeHTML().replace(/(?:\r\n|\r|\n)/g, '<br />');
   };
 
   var didChangeOccur = function() {

@@ -69,13 +69,13 @@ html, body, section, .full-height {
 
 .info {
   position: absolute;
-  bottom:0px;
-  left: 0px;
+  top:0px;
+  right: 0px;
   background-color: red;
   padding: 5px;
   color: white;
   font-size: 9pt;
-  border-radius: 0px 5px 0px 0px
+  border-radius: 0px 0px 0px 5px
 }
 
 .gutter {
