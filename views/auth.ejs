@@ -4,33 +4,36 @@
 <html>
 
 <head>
+  <link rel="shortcut icon" href="/favicon.ico">
   <title>abas help editor</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
   <link href="/signin.css" rel="stylesheet">
 </head>
+
 <body class="text-center">
-    <div class="form-signin">
-      <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
-      <label for="inputName" class="sr-only">Name</label>
-      <input type="text" id="inputName" class="form-control" placeholder="Name" required="" autofocus="">
-      <button class="btn btn-lg btn-primary btn-block" id="login">Sign in</button>
-    </div>
+  <div class="form-signin">
+    <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
+    <label for="inputName" class="sr-only">Name</label>
+    <input type="text" id="inputName" class="form-control" placeholder="Name" required="" autofocus="">
+    <button class="btn btn-lg btn-primary btn-block" id="login">Sign in</button>
+  </div>
   <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
   <script>
-    $(document).ready(function(){
-      $('#login').click(function(){
+    $(document).ready(function() {
+      $('#login').click(function() {
         console.log("Login :)");
-        $.post("/auth",{
+        $.post("/auth", {
           username: $('#inputName').val()
-        }).done(function(){
+        }).done(function() {
           window.location.reload();
-        }).fail(function(){
+        }).fail(function() {
           console.log("Fehler");
         });
       });
     });
   </script>
 </body>
+
 </html>

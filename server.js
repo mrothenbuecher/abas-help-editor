@@ -1,22 +1,26 @@
 const config = require('./lib/config.js').getConfig();
 const XmlHandler = require('./lib/xml.js');
+const shareDbAccess = require('sharedb-access')
 var xmlHandler = new XmlHandler(config);
 
 xmlHandler.validate();
 
 var http = require('http');
+var path = require('path')
 var express = require('express');
 // express stuff
 var bodyParser = require('body-parser');
 var session = require('express-session')
+var favicon = require('serve-favicon')
 
 //shareDB
 var ShareDB = require('sharedb');
+var ShareDBMingoMemory = require('sharedb-mingo-memory');
 var WebSocket = require('ws');
 var WebSocketJSONStream = require('websocket-json-stream');
 
-var share = new ShareDB();
-
+var share = new ShareDB({db: new ShareDBMingoMemory()});
+shareDbAccess(share);
 
 createDoc(startServer);
 
@@ -49,6 +53,8 @@ function startServer() {
     //ejs
     app.set('view engine', 'ejs');
     app.use(express.static(__dirname + '/public'));
+
+    app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
 
     // bodyParser
     app.use(bodyParser.json());
@@ -95,7 +101,8 @@ function startServer() {
         if (docName && docName !== "favicon.ico") {
           createDoc(startServer, docName)
         }
-        res.render('pad');
+        var data = {'docName': docName, user: req.session.user};
+        res.render('pad', data);
       } else {
         res.render('auth');
       }
@@ -119,6 +126,17 @@ function startServer() {
     wss.on('connection', function(ws, req) {
       var stream = new WebSocketJSONStream(ws);
       share.listen(stream);
+
+      share.allowRead('abas-help-editor', function (docId, doc, session)  {
+        // console.log("session.user", session.user);
+        return true;
+      });
+
+      share.allowUpdate('abas-help-editor', function (docId, oldDoc, newDoc, ops, session) {
+        // console.log("Update on:"+docId,oldDoc, newDoc);
+        return true;
+      });
+
     });
 
     if (config.public) {
