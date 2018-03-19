@@ -1,7 +1,16 @@
-const config = require('./config.js').getConfig();
+const config = require('./lib/config.js').getConfig();
+const XmlHandler = require('./lib/xml.js');
+var xmlHandler = new XmlHandler(config);
+
+xmlHandler.validate();
 
 var http = require('http');
 var express = require('express');
+// express stuff
+var bodyParser = require('body-parser');
+var session = require('express-session')
+
+//shareDB
 var ShareDB = require('sharedb');
 var WebSocket = require('ws');
 var WebSocketJSONStream = require('websocket-json-stream');
@@ -37,20 +46,67 @@ function startServer() {
     // Create a web server to serve files and listen to WebSocket connections
     app = express();
 
+    //ejs
     app.set('view engine', 'ejs');
-
     app.use(express.static(__dirname + '/public'));
 
-    // routes for app
-    app.get('/', function(req, res) {
-      res.render('main');
-    });
-    app.get('/edit/(:id)', function(req, res) {
-      var docName = req.params.id;
-      if (docName && docName !== "favicon.ico") {
-        createDoc(startServer, docName)
+    // bodyParser
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({
+      extended: true
+    }));
+
+    //
+    app.use(session({
+      secret: config.session_secret,
+      resave: false,
+      saveUninitialized : false,
+      cookie: {
+        maxAge: 36000000
       }
-      res.render('pad');
+    }))
+
+    app.post('/auth', function(req, res) {
+      var response = {error:true};
+      res.setHeader('Content-Type', 'application/json');
+      if(req.body.username && !req.session.user){
+        req.session.user = req.body.username;
+        response.error = false;
+      }else if(req.session.user){
+        req.session.user = null;
+      }
+      res.send(JSON.stringify(response));
+    });
+
+
+
+    // Main
+    app.get('/', function(req, res) {
+      if (req.session.user) {
+        res.render('main');
+      } else {
+        res.render('auth');
+      }
+    });
+    // edit a document
+    app.get('/edit/(:id)', function(req, res) {
+      if (req.session.user) {
+        var docName = req.params.id;
+        if (docName && docName !== "favicon.ico") {
+          createDoc(startServer, docName)
+        }
+        res.render('pad');
+      } else {
+        res.render('auth');
+      }
+    });
+
+    app.post('/validate/xml/', function(req, res) {
+      console.log("Validate xml:", req.body);
+      var response = {};
+      //TODO
+      res.setHeader('Content-Type', 'application/json');
+      res.send(JSON.stringify(response));
     });
 
     //app.use(express.static('static'));
