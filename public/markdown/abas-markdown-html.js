@@ -5,33 +5,36 @@
  */
 
 var markdownhtml = {
-  TAGS:function () {
+  TAGS: function() {
     return {
-      '': ['<em>', '</em>'],
-      _: ['<strong>', '</strong>'],
-      '\n': ['<br />'],
-      ' ': ['<br />'],
-      '-': ['<hr />']
+      '': ['<REF>', '</REF>'],
+      _: ['<B>', '</B>'],
+      '*': ['<tt class="abas">', '</tt>'],
+      '\n': ['<BR />\n'],
+      ' ': ['<BR />\n'],
+      '-': ['\n<HR />\n']
     };
   },
 
   /** Outdent a string based on the first indented line's leading whitespace
    *	@private
    */
-  outdent : function (str) {
+  outdent: function(str) {
     return str.replace(RegExp('^' + (str.match(/^(\t| )+/) || '')[0], 'gm'), '');
   },
 
   /** Encode special attribute characters to HTML entities in a String.
    *	@private
    */
-  encodeAttr:function (str) {
+  encodeAttr: function(str) {
     return (str + '').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   },
 
   /** Parse Markdown into an HTML String. */
-  parse:function (md) {
-    var tokenizer = /((?:^|\n+)(?:\n---+|\* \*(?: \*)+)\n)|(?:^```(\w*)\n([\s\S]*?)\n```$)|((?:(?:^|\n+)(?:\t|  {2,}).+)+\n*)|((?:(?:^|\n)([>*+-]|\d+\.)\s+.*)+)|(?:\!\[([^\]]*?)\]\(([^\)]+?)\))|(\[)|(\](?:\(([^\)]+?)\))?)|(?:(?:^|\n+)([^\s].*)\n(\-{3,}|={3,})(?:\n+|$))|(?:(?:^|\n+)(#{1,6})\s*(.+)(?:\n+|$))|(?:`([^`].*?)`)|(  \n\n*|\n{2,}|__|\*\*|[_*])/gm,
+  parse: function(md) {
+    var tokenizer = /((?:^|\n+)(?:\n---+|\* \*(?: \*)+)\n)|(?:^```(\w*)\n([\s\S]*?)\n```$)|((?:(?:^|\n+)(?:\t|  {2,}).+)+\n*)|((?:(?:^|\n)([>*+-]|\d+\.)\s+.*)+)|(?:\!\[([^\]]*?)\]\(([^\)]+?)\))|(\[)|(\](?:\(([^\)]+?)\))?)|(?:(?:^|\n+)([^\s].*)\n(\-{3,}|={3,})(?:\n+|$))|(?:(?:^|\n+)(#{1,6}))\s*(?:\{(?:([a-zA-Z].*?))\})?(.+)(?:\n+|$)|(?:`\n([\s\S]*?)\n`)|(  \n\n*|\n{2,}|__|\*{2,})|(?:\*(?:\{([a-zA-Z]\w*)\})?\s*(.*)?\*)|(?:\{\{([a-zA-Z].*)+\}\})|(?:(?:^|\n+)(\.{2}))\s*(?:\{(?:([a-zA-Z].*?))\})?(.+)(?:\n+|$)|((?:(?:^|\n)([;;]{2})\s+.*)+)|(?:~(?:\{(.*)\}){1}(.*)*\n([\s\S]*?)\n~)/gm,
+      //|(?:^(.*)$)
+      // (?:^(.*?)\n)
       context = [],
       out = '',
       last = 0,
@@ -39,7 +42,7 @@ var markdownhtml = {
       chunk, prev, token, inner, t;
 
     function tag(token) {
-      var desc = markdownxml.TAGS()[token.replace(/\*/g, '_')[1] || ''],
+      var desc = markdownhtml.TAGS()[token.replace(/\*/g, '*')[1] || ''],
         end = context[context.length - 1] == token;
       if (!desc) {
         return token;
@@ -71,9 +74,9 @@ var markdownhtml = {
       if (prev.match(/[^\\](\\\\)*\\$/)) {
         // escaped
       }
-      // Code/Indent blocks:
+      // PRE:
       else if (token[3] || token[4]) {
-        chunk = '<pre class="code ' + (token[4] ? 'poetry' : token[2].toLowerCase()) + '">' + markdownxml.outdent(markdownxml.encodeAttr(token[3] || token[4]).replace(/^\n+|\n+$/g, '')) + '</pre>';
+        chunk = '<PRE>' + markdownhtml.outdent(markdownhtml.encodeAttr(token[3] || token[4]).replace(/^\n+|\n+$/g, '')) + '</PRE>\n';
       }
       // > Quotes, -* lists:
       else if (token[6]) {
@@ -81,44 +84,81 @@ var markdownhtml = {
         if (t.match(/\./)) {
           token[5] = token[5].replace(/^\d+/gm, '');
         }
-        inner = markdownxml.parse(markdownxml.outdent(token[5].replace(/^\s*[>*+.-]/gm, '')));
+        inner = markdownhtml.parse(markdownhtml.outdent(token[5].replace(/^\s*[>*+.-]/gm, '')));
         if (t === '>') {
-          t = 'blockquote';
+          t = 'P';
+          chunk = '<' + t + '>' + inner + '</' + t + '>\n';
         } else {
           t = t.match(/\./) ? 'ol' : 'ul';
-          inner = inner.replace(/^(.*)(\n|$)/gm, '<li>$1</li>');
+          inner = inner.replace(/^(.*)(\n|$)/gm, '\t<li>$1</li>\n');
+          chunk = '<' + t + ' class="abas-list">\n' + inner + '</' + t + '>\n';
         }
-        chunk = '<' + t + '>' + inner + '</' + t + '>';
+
       }
       // Images:
       else if (token[8]) {
-        chunk = "<img src=\"" + (markdownxml.encodeAttr(token[8])) + "\" alt=\"" + (markdownxml.encodeAttr(token[7])) + "\">";
+        chunk = "<IMG SRC=\"" + (markdownhtml.encodeAttr(token[8])) + "\" ALT=\"" + (markdownhtml.encodeAttr(token[7])) + "\" />\n";
       }
       // Links:
       else if (token[10]) {
-        out = out.replace('<a>', ("<a href=\"" + (markdownxml.encodeAttr(token[11] || links[prev.toLowerCase()])) + "\">"));
-        chunk = flush() + '</a>';
+        out = out.replace('<A>', ("<A HREF=\"" + (markdownhtml.encodeAttr(token[11] || links[prev.toLowerCase()])) + "\">"));
+        chunk = flush() + '</A>\n';
       } else if (token[9]) {
-        chunk = '<a>';
+        chunk = '<A>';
       }
       // Headings:
       else if (token[12] || token[14]) {
-        t = 'h' + (token[14] ? token[14].length : (token[13][0] === '=' ? 1 : 2));
-        chunk = '<' + t + '>' + markdownxml.parse(token[12] || token[15]) + '</' + t + '>';
+        t = 'H' + (token[14] ? token[14].length : (token[13][0] === '=' ? 1 : 2));
+
+        var id = token[15];
+        var split = null;
+        if (id && (foo = id.split(",")).length) {
+          id = foo[0];
+          split = foo[1];
+        }
+
+        chunk = '<' + t + ' class="abas-header">' + markdownhtml.parse(token[12] || token[16]) + '</' + t + '>\n';
       }
-      // `code`:
-      else if (token[16]) {
-        chunk = '<code>' + markdownxml.encodeAttr(token[16]) + '</code>';
+      // `PROGRAM`:
+      else if (token[17]) {
+        chunk = '<pre class="abas-program">' + markdownhtml.outdent(markdownhtml.encodeAttr(token[17]).replace(/^\n+|\n+$/g, '')) + '</pre>';
       }
-      // Inline formatting: *em*, **strong** & friends
-      else if (token[17] || token[1]) {
-        chunk = tag(token[17] || '--');
+
+      // Inline formatting: **strong** & hr & br
+      else if (token[18] || token[1]) {
+        chunk = tag(token[18] || '--');
       }
+      // REF
+      else if (token[19] && token[20]) {
+        chunk = '<REF ID="' + token[19] + '">' + token[20] + '</REF>'
+      }
+      // MARK
+      else if (token[21]) {
+        chunk = '<MARK ID="' + token[21] + '" />';
+      }
+      // H
+      else if (token[22]) {
+        chunk = '<H ' + (token[23] ? 'ID="' + token[23] + '"' : "") + '>' + token[24] + '</H>\n'
+        //chunk = '<MARK ID="'+token[21]+'" />';
+      // DL - definition list
+      } else if (token[26]) {
+        t = token[26];
+        inner = markdownhtml.parse(markdownhtml.outdent(token[25].replace(/^\s*[;]{2}/gm, '')));
+        inner = inner.replace(/\|\|/gm, '</td><td class="DD" bgcolor="#FFFFFF" style="FONT-FAMILY:Segoe UI,Arial,Helvetica,sans-serif;font-size:100%" valign="top">' );
+        inner = inner.replace(/^(?:\{(.*)\})(.*)(\n|$)/gm, '<tr><td class="DT" bgcolor="#CBCCCE" style="FONT-FAMILY:Segoe UI,Arial,Helvetica,sans-serif;font-size:100%" valign="top">$1</td><td class="DD" bgcolor="#FFFFFF" style="FONT-FAMILY:Segoe UI,Arial,Helvetica,sans-serif;font-size:100%" valign="top">$2</td></tr>');
+        chunk = '<table class="DL" bgcolor="#CBCCCE" border="1" cellpadding="5" cellspacing="1" style="border-collapse:collapse;border-color:#CBCCCE"><tbody>' + inner + '</tbody></table>';
+      }
+      // PP
+      else if (token[27]) {
+        chunk = '<div class="abas-pp ' + token[27] + '" ><h1 class="pp-header">'+token[27]+':'+(token[28]?token[28]:"")+'</h1><br/>'+markdownhtml.parse(markdownhtml.outdent(token[29]))+'</div>';
+      }
+      console.log("Token:", token);
       out += prev;
       out += chunk;
     }
-
     return (out + md.substring(last) + flush()).trim();
+  },
+  getAbasHtml: function(md) {
+    return '<div id="top"><h1 style="font-size: 100%;">help</h1></div>' + markdownhtml.parse(md) + '<div id="bottom"></div><div id="footer"></div>';
   }
-
 };

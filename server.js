@@ -62,7 +62,7 @@ function startServer() {
       extended: true
     }));
 
-    //
+    // Session config
     app.use(session({
       secret: config.session_secret,
       resave: false,

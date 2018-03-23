@@ -23,10 +23,10 @@ if (!String.prototype.decodeHTML) {
 window.onload = function() {
   //var converter = new showdown.Converter();
   var pad = document.getElementById('pad');
-  //var htmlArea = document.getElementById('html-content');
+  var htmlArea = document.getElementById('html-content');
   var xmlArea = document.getElementById('xml-content');
 
-/*
+
   Split(['#input', '#output'], {
     sizes: [50, 50]
   });
@@ -36,12 +36,12 @@ window.onload = function() {
     sizes: [50, 50],
     direction: 'vertical'
   });
-*/
 
+/*
 Split(['#input', '#xml'], {
   sizes: [50, 50]
 });
-
+*/
   // make the tab act like a tab
   pad.addEventListener('keydown', function(e) {
     if (e.keyCode === 9) { // tab was pressed
@@ -74,7 +74,8 @@ Split(['#input', '#xml'], {
     //console.log("XML: ",markdownxml);
     //html = converter.makeHtml(markdownText);
     xml = markdownxml.getPlainXml(markdownText);
-    //htmlArea.innerHTML = html;
+    html = markdownhtml.getAbasHtml(markdownText);
+    htmlArea.innerHTML = html;
     xmlArea.innerHTML = xml.encodeHTML().replace(/(?:\r\n|\r|\n)/g, '<br />');
   };
 

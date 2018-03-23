@@ -1,0 +1,74 @@
+#html-content {
+  height: 100%;
+}
+
+#html-content > * {
+  font-family: Segoe UI, Arial, Helvetica, sans-serif;
+}
+
+#html-content * {
+  font-family: Segoe UI, Arial, Helvetica, sans-serif;
+}
+
+#html-content #top {
+  height: 36px;
+  width: 100%;
+  text-align: center;
+  color: white;
+  background-color: rgb(27, 186, 164);
+}
+
+#html-content #bottom {
+  height: 36px;
+  width: 100%;
+  background-color: rgb(27, 186, 164);
+}
+
+#html-content #footer {
+  height: 29px;
+  width: 100%;
+  background-color: rgb(82, 91, 96);
+}
+
+h1.abas-header, h2.abas-header, h3.abas-header, h4.abas-header, h5.abas-header, h6.abas-header {
+  display: block;
+  -webkit-margin-before: 1.33em;
+  -webkit-margin-after: 1.33em;
+  -webkit-margin-start: 0px;
+  -webkit-margin-end: 0px;
+  font-weight: bold;
+}
+
+#html-content .abas-program {
+  font-family: "Courier New", monospace;
+  width: 100%;
+  display: block;
+  background-color: rgb(255, 255, 224);
+  border: 1px solid black;
+  padding: 5px;
+}
+
+ul.abas-list {
+  list-style-image:url(../img/ul_image.png);
+  display: block;
+  list-style-type: disc;
+  -webkit-margin-before: 1em;
+  -webkit-margin-after: 1em;
+  -webkit-margin-start: 0px;
+  -webkit-margin-end: 0px;
+  -webkit-padding-start: 40px;
+}
+
+#html-content tt.abas {
+  font-family:"Courier New",monospace;
+}
+
+#html-content div.abas-pp {
+  width: 100%;
+  background-color: #CBCCCE;
+}
+
+#html-content div.abas-pp h1.pp-header {
+  font-weight: bold;
+  color: #1A5DAD;
+}
