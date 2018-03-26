@@ -20,6 +20,12 @@ if (!String.prototype.decodeHTML) {
   };
 }
 
+if (!String.prototype.replaceAll) {
+  String.prototype.replaceAll = function(search, replacement) {
+    var target = this;
+    return target.replace(new RegExp(search, 'g'), replacement);
+  };
+}
 window.onload = function() {
   //var converter = new showdown.Converter();
   var pad = document.getElementById('pad');
@@ -37,12 +43,28 @@ window.onload = function() {
     direction: 'vertical'
   });
 
-/*
-Split(['#input', '#xml'], {
-  sizes: [50, 50]
-});
-*/
+  /*
+  Split(['#input', '#xml'], {
+    sizes: [50, 50]
+  });
+  */
   // make the tab act like a tab
+
+  var caretPosition;
+
+  $("#pad").bind("keydown keypress keyup click focus", function() {
+      if(this.selectionStart < this.selectionEnd){
+        caretPosition = this.selectionStart;
+      }
+      else caretPosition = this.selectionEnd;
+      convertTextAreaToMarkdown();
+  });
+
+  $("#pad").bind("blur", function() {
+      caretPosition = null;
+  });
+
+
   pad.addEventListener('keydown', function(e) {
     if (e.keyCode === 9) { // tab was pressed
       // get caret position/selection
@@ -70,6 +92,9 @@ Split(['#input', '#xml'], {
   // convert text area to markdown html
   var convertTextAreaToMarkdown = function() {
     var markdownText = pad.value;
+    if(caretPosition){
+      var markdownText = [markdownText.slice(0, caretPosition), '$$ $$', markdownText.slice(caretPosition)].join('');
+    }
     previousMarkdownValue = markdownText;
     //console.log("XML: ",markdownxml);
     //html = converter.makeHtml(markdownText);
