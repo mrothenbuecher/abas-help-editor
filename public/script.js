@@ -51,7 +51,74 @@ window.onload = function() {
   // make the tab act like a tab
 
   var caretPosition;
+  var lastOP;
 
+  var carets = {};
+
+  infoDocument.subscribe(function(err) {
+    if (err) throw err;
+
+    $("#pad").bind("keydown keypress keyup click focus", function() {
+
+      var oldCaretPosition = caretPosition;
+
+        if(this.selectionStart < this.selectionEnd){
+          caretPosition = this.selectionStart;
+        }
+        else caretPosition = this.selectionEnd;
+        //convertTextAreaToMarkdown();
+
+        if(!lastOP){
+          lastOP = {
+            p: [username],
+            li: caretPosition
+          };
+        }else{
+          lastOP = {
+            p: [username],
+            ld: oldCaretPosition,
+            li: caretPosition
+          };
+        }
+        console.log("LastOP: ",lastOP);
+        //  Submit data
+        infoDocument.submitOp([lastOP]);
+    });
+
+
+
+    $("#pad").bind("blur", function() {
+
+        var oldCaretPosition = caretPosition;
+        caretPosition = null;
+
+        if(!lastOP){
+          lastOP = {
+            p: [username],
+            li: caretPosition
+          };
+        }else{
+          lastOP = {
+            p: [username],
+            ld: oldCaretPosition,
+            li: caretPosition
+          };
+        }
+        console.log("LastOP: ",lastOP);
+        //  Submit data
+        infoDocument.submitOp([lastOP]);
+
+    });
+
+
+    infoDocument.on('op', function(op, source) {
+      console.log("Op:", op, source);
+        carets[op[0].p[0]] = op[0].li;
+        convertTextAreaToMarkdown();
+    });
+  });
+
+/*
   $("#pad").bind("keydown keypress keyup click focus", function() {
       if(this.selectionStart < this.selectionEnd){
         caretPosition = this.selectionStart;
@@ -63,7 +130,7 @@ window.onload = function() {
   $("#pad").bind("blur", function() {
       caretPosition = null;
   });
-
+*/
 
   pad.addEventListener('keydown', function(e) {
     if (e.keyCode === 9) { // tab was pressed
@@ -92,8 +159,19 @@ window.onload = function() {
   // convert text area to markdown html
   var convertTextAreaToMarkdown = function() {
     var markdownText = pad.value;
-    if(caretPosition){
-      var markdownText = [markdownText.slice(0, caretPosition), '$$ $$', markdownText.slice(caretPosition)].join('');
+    if(carets){
+      console.log(carets);
+
+      for (var prop in carets) {
+          //console.log("o." + prop + " = " + obj[prop]);
+          var cp = carets[prop];
+          if(cp!= null && cp >= 0){
+            markdownText = [markdownText.slice(0, cp), '$$ $$', markdownText.slice(cp)].join('');
+          }
+
+      }
+
+
     }
     previousMarkdownValue = markdownText;
     //console.log("XML: ",markdownxml);

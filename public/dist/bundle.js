@@ -21,6 +21,8 @@ doc.subscribe(function(err) {
   binding.setup();
 });
 
+infoDocument = connection.get('abas-help-editor-info', docName);
+
 },{"sharedb-string-binding":9,"sharedb/lib/client":12}],2:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //

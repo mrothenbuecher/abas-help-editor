@@ -153,7 +153,6 @@ var markdownhtml = {
       else if (token[27]) {
         chunk = '<div class="abas-pp ' + token[27] + '" ><h1 class="pp-header">'+token[27]+':'+(token[28]?token[28]:"")+'</h1><br/>'+markdownhtml.parse(markdownhtml.outdent(token[29]))+'</div>';
       }
-      console.log("Token:", token);
       out += prev;
       out += chunk;
     }

@@ -19,3 +19,5 @@ doc.subscribe(function(err) {
   var binding = new StringBinding(element, doc);
   binding.setup();
 });
+
+infoDocument = connection.get('abas-help-editor-info', docName);

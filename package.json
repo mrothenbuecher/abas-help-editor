@@ -6,6 +6,7 @@
   "scripts": {
     "build_client": "node_modules/.bin/browserify client.js -o public/dist/bundle.js",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "run_debug" : "node server.js",
     "start": "npm run build_client && node server.js"
   },
   "keywords": [

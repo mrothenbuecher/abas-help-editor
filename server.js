@@ -25,7 +25,7 @@ shareDbAccess(share);
 createDoc(startServer);
 
 // Create initial document then fire callback
-function createDoc(callback, docName) {
+function createDoc(callback, docName, username) {
 
   if (!docName) {
     docName = "text";
@@ -38,6 +38,25 @@ function createDoc(callback, docName) {
     if (doc.type === null) {
       doc.create('', callback);
       return;
+    }
+    callback();
+  });
+
+  var doc2 = connection.get('abas-help-editor-info', docName);
+  doc2.fetch(function(err) {
+    if (err) throw err;
+    //doc2.type = "ot-json0";
+    if (doc2.type === null) {
+      var foo = {};
+      foo[username] = 0;
+      doc2.create([foo], callback);
+      return;
+    }else{
+      var lastOP = {
+        p: [username],
+        li: 0
+      };
+      doc2.submitOp([lastOP]);
     }
     callback();
   });
@@ -99,7 +118,7 @@ function startServer() {
       if (req.session.user) {
         var docName = req.params.id;
         if (docName && docName !== "favicon.ico") {
-          createDoc(startServer, docName)
+          createDoc(startServer, docName, req.session.user)
         }
         var data = {'docName': docName, user: req.session.user};
         res.render('pad', data);
@@ -133,6 +152,16 @@ function startServer() {
       });
 
       share.allowUpdate('abas-help-editor', function (docId, oldDoc, newDoc, ops, session) {
+        // console.log("Update on:"+docId,oldDoc, newDoc);
+        return true;
+      });
+
+      share.allowRead('abas-help-editor-info', function (docId, doc, session)  {
+        // console.log("session.user", session.user);
+        return true;
+      });
+
+      share.allowUpdate('abas-help-editor-info', function (docId, oldDoc, newDoc, ops, session) {
         // console.log("Update on:"+docId,oldDoc, newDoc);
         return true;
       });
