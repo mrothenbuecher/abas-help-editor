@@ -7,7 +7,7 @@
 var markdownxml = {
   TAGS: function() {
     return {
-            '$': ['', ''],
+            '$': [''],
       '': ['<REF>', '</REF>'],
       _: ['<B>', '</B>'],
       '*': ['<TT>', '</TT>'],
