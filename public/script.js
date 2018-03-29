@@ -46,6 +46,7 @@ if (!String.prototype.toARGB) {
       (i & 0xFF).toString(16);
     while (val.length < 6)
       val = val + '0';
+    val = val.slice(0,6);
     return val;
   };
 }
@@ -81,44 +82,19 @@ window.onload = function() {
   var carets = {};
 
 
-function updateCaret(){
+  function updateCaret() {
 
-  var oldCaretPosition = caretPosition;
+    var oldCaretPosition = caretPosition;
 
-  var $pad = $('#pad')[0];
+    var $pad = $('#pad')[0];
 
-  if ($pad.selectionStart < $pad.selectionEnd)
-    caretPosition = $pad.selectionStart;
-   else
-    caretPosition = $pad.selectionEnd;
-  // convertTextAreaToMarkdown();
+    if ($pad.selectionStart < $pad.selectionEnd)
+      caretPosition = $pad.selectionStart;
+    else
+      caretPosition = $pad.selectionEnd;
+    // convertTextAreaToMarkdown();
 
-  if (!lastOP) {
-    lastOP = {
-      p: [username],
-      li: caretPosition
-    };
-  } else {
-    lastOP = {
-      p: [username],
-      ld: oldCaretPosition,
-      li: caretPosition
-    };
-  }
-  infoDocument.submitOp([lastOP]);
-}
-
-  infoDocument.subscribe(function(err) {
-    if (err) throw err;
-
-    $("#pad").bind("keydown keypress keyup click focus", function() {
-/*
-      var oldCaretPosition = caretPosition;
-
-      if (this.selectionStart < this.selectionEnd) {
-        caretPosition = this.selectionStart;
-      } else caretPosition = this.selectionEnd;
-      // convertTextAreaToMarkdown();
+    if (oldCaretPosition != caretPosition) {
 
       if (!lastOP) {
         lastOP = {
@@ -133,14 +109,19 @@ function updateCaret(){
         };
       }
       infoDocument.submitOp([lastOP]);
-      */
+    }
+  }
+
+  infoDocument.subscribe(function(err) {
+    if (err) throw err;
+
+    $("#pad").bind("keydown keypress keyup click focus", function() {
       updateCaret();
     });
 
 
 
     $("#pad").bind("blur", function() {
-
       var oldCaretPosition = caretPosition;
       caretPosition = null;
 
@@ -151,7 +132,6 @@ function updateCaret(){
         };
         infoDocument.submitOp([lastOP]);
       }
-
     });
 
 
@@ -202,6 +182,13 @@ function updateCaret(){
   // convert text area to markdown html
   var convertTextAreaToMarkdown = function() {
     var markdownText = pad.value;
+
+    previousMarkdownValue = markdownText;
+    //console.log("XML: ",markdownxml);
+    //html = converter.makeHtml(markdownText);
+    xml = markdownxml.getPlainXml(markdownText);
+    xml = pd.xml(xml);
+
     if (carets) {
 
       keysSorted = Object.keys(carets).sort(function(a, b) {
@@ -217,13 +204,15 @@ function updateCaret(){
         }
       }
 
+      for (var i = 0; i < keysSorted.length; i++) {
+        var cp = carets[keysSorted[i]] + (2 * i);
+        if (cp != null && cp >= 0) {
+          markdownText = markdownText.replace(/\$\$/,'<span class="cursor" style="color:#'+keysSorted[i].toARGB()+';">|<i>'+keysSorted[i]+'</i></span>');
+        }
+      }
+
     }
 
-    previousMarkdownValue = markdownText;
-    //console.log("XML: ",markdownxml);
-    //html = converter.makeHtml(markdownText);
-    xml = markdownxml.getPlainXml(markdownText);
-    xml = pd.xml(xml);
     html = markdownhtml.getAbasHtml(markdownText);
     htmlArea.innerHTML = html;
     //xmlArea.innerHTML = xml.encodeHTML().replace(/(?:\r\n|\r|\n)/g, '<br />');

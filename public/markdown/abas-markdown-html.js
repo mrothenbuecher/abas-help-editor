@@ -7,7 +7,7 @@
 var markdownhtml = {
   TAGS: function() {
     return {
-      '$': ['<span class="cursor">|</span>'],
+      '$': [''],
       '': ['<REF>', '</REF>'],
       _: ['<B>', '</B>'],
       '*': ['<tt class="abas">', '</tt>'],

@@ -74,6 +74,7 @@ ul.abas-list {
 }
 
 #html-content .cursor {
+  z-index: 10000;
   letter-spacing: -3px;
   font-weight: bolder;
   color: red;
@@ -86,47 +87,53 @@ ul.abas-list {
   animation: 1s blink step-end infinite;
 }
 
+#html-content .cursor  > i{
+  font-size: 9pt;
+  letter-spacing: 0px;
+  position: absolute;
+}
+
 @keyframes "blink" {
   from, to {
-    color: transparent;
+    opacity: 1;
   }
   50% {
-    color: red;
+    opacity: 0;
   }
 }
 
 @-moz-keyframes blink {
   from, to {
-    color: transparent;
+    opacity: 1;
   }
   50% {
-    color: red;
+    opacity: 0;
   }
 }
 
 @-webkit-keyframes "blink" {
   from, to {
-    color: transparent;
+    opacity: 1;
   }
   50% {
-    color: red;
+    opacity: 0;
   }
 }
 
 @-ms-keyframes "blink" {
   from, to {
-    color: transparent;
+    opacity: 1;
   }
   50% {
-    color: red;
+    opacity: 0;
   }
 }
 
 @-o-keyframes "blink" {
   from, to {
-    color: transparent;
+    opacity: 1;
   }
   50% {
-    color: red;
+    opacity: 0;
   }
 }
