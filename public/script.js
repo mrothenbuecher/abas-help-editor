@@ -80,17 +80,45 @@ window.onload = function() {
 
   var carets = {};
 
+
+function updateCaret(){
+
+  var oldCaretPosition = caretPosition;
+
+  var $pad = $('#pad')[0];
+
+  if ($pad.selectionStart < $pad.selectionEnd)
+    caretPosition = $pad.selectionStart;
+   else
+    caretPosition = $pad.selectionEnd;
+  // convertTextAreaToMarkdown();
+
+  if (!lastOP) {
+    lastOP = {
+      p: [username],
+      li: caretPosition
+    };
+  } else {
+    lastOP = {
+      p: [username],
+      ld: oldCaretPosition,
+      li: caretPosition
+    };
+  }
+  infoDocument.submitOp([lastOP]);
+}
+
   infoDocument.subscribe(function(err) {
     if (err) throw err;
 
     $("#pad").bind("keydown keypress keyup click focus", function() {
-
+/*
       var oldCaretPosition = caretPosition;
 
       if (this.selectionStart < this.selectionEnd) {
         caretPosition = this.selectionStart;
       } else caretPosition = this.selectionEnd;
-      convertTextAreaToMarkdown();
+      // convertTextAreaToMarkdown();
 
       if (!lastOP) {
         lastOP = {
@@ -105,6 +133,8 @@ window.onload = function() {
         };
       }
       infoDocument.submitOp([lastOP]);
+      */
+      updateCaret();
     });
 
 
@@ -179,7 +209,7 @@ window.onload = function() {
       })
 
       for (var i = 0; i < keysSorted.length; i++) {
-        var cp = carets[keysSorted[i]] + (3 * i);
+        var cp = carets[keysSorted[i]] + (2 * i);
         if (cp != null && cp >= 0) {
           //if(i>0)
           //  cp += (1*i);
@@ -210,6 +240,7 @@ window.onload = function() {
   // check every second if the text area has changed
   setInterval(function() {
     if (didChangeOccur()) {
+      updateCaret();
       convertTextAreaToMarkdown();
     }
   }, 1000);
