@@ -11,9 +11,9 @@ var markdownxml = {
       '': ['<REF>', '</REF>'],
       _: ['<B>', '</B>'],
       '*': ['<TT>', '</TT>'],
-      '\n': ['<BR />\n'],
-      ' ': ['<BR />\n'],
-      '-': ['\n<HR />\n']
+      '\n': ['<BR />'],
+      ' ': ['<BR />'],
+      '-': ['<HR />']
     };
   },
 
@@ -77,7 +77,7 @@ var markdownxml = {
       }
       // PRE:
       else if (token[3] || token[4]) {
-        chunk = '<PRE><![CDATA[<(Text)>\n' + markdownxml.outdent(markdownxml.encodeAttr(token[3] || token[4]).replace(/^\n+|\n+$/g, '')) + '\n]]></PRE>\n';
+        chunk = '<PRE><![CDATA[<(Text)>' + markdownxml.outdent(markdownxml.encodeAttr(token[3] || token[4]).replace(/^\n+|\n+$/g, '')) + ']]></PRE>';
       }
       // > Quotes, -* lists:
       else if (token[6]) {
@@ -88,22 +88,22 @@ var markdownxml = {
         inner = markdownxml.parse(markdownxml.outdent(token[5].replace(/^\s*[>*+.-]/gm, '')));
         if (t === '>') {
           t = 'P';
-          chunk = '<' + t + '>' + inner + '</' + t + '>\n';
+          chunk = '<' + t + '>' + inner + '</' + t + '>';
         } else {
           t = t.match(/\./) ? 'OL' : 'UL';
-          inner = inner.replace(/^(.*)(\n|$)/gm, '\t<LI>$1</LI>\n');
-          chunk = '<' + t + '>\n' + inner + '</' + t + '>\n';
+          inner = inner.replace(/^(.*)(\n|$)/gm, '\t<LI>$1</LI>');
+          chunk = '<' + t + '>' + inner + '</' + t + '>';
         }
 
       }
       // Images:
       else if (token[8]) {
-        chunk = "<IMG SRC=\"" + (markdownxml.encodeAttr(token[8])) + "\" ALT=\"" + (markdownxml.encodeAttr(token[7])) + "\" />\n";
+        chunk = "<IMG SRC=\"" + (markdownxml.encodeAttr(token[8])) + "\" ALT=\"" + (markdownxml.encodeAttr(token[7])) + "\" />";
       }
       // Links:
       else if (token[10]) {
         out = out.replace('<A>', ("<A HREF=\"" + (markdownxml.encodeAttr(token[11] || links[prev.toLowerCase()])) + "\">"));
-        chunk = flush() + '</A>\n';
+        chunk = flush() + '</A>';
       } else if (token[9]) {
         chunk = '<A>';
       }
@@ -118,11 +118,11 @@ var markdownxml = {
           split = foo[1];
         }
 
-        chunk = '<' + t + (id ? ' ID="' + id + '" ' : "") + (split ? ' SPLIT="' + split + '" ' : "") + '>' + markdownxml.parse(token[12] || token[16]) + '</' + t + '>\n';
+        chunk = '<' + t + (id ? ' ID="' + id + '" ' : "") + (split ? ' SPLIT="' + split + '" ' : "") + '>' + markdownxml.parse(token[12] || token[16]) + '</' + t + '>';
       }
       // `PROGRAM`:
       else if (token[17]) {
-        chunk = '<PROGRAM><![CDATA[<(Text)>\n' + markdownxml.outdent(markdownxml.encodeAttr(token[17]).replace(/^\n+|\n+$/g, '')) + '\n]]></PROGRAM>\n';
+        chunk = '<PROGRAM><![CDATA[<(Text)>' + markdownxml.outdent(markdownxml.encodeAttr(token[17]).replace(/^\n+|\n+$/g, '')) + ']]></PROGRAM>';
       }
 
       // Inline formatting: **strong** & hr & br
@@ -139,7 +139,7 @@ var markdownxml = {
       }
       // H
       else if (token[22]) {
-        chunk = '<H ' + (token[23] ? 'ID="' + token[23] + '"' : "") + '>' + token[24] + '</H>\n'
+        chunk = '<H ' + (token[23] ? 'ID="' + token[23] + '"' : "") + '>' + token[24] + '</H>'
         //chunk = '<MARK ID="'+token[21]+'" />';
       // DL - definition list
       } else if (token[26]) {
@@ -148,11 +148,11 @@ var markdownxml = {
         inner = inner.replace(/\|\|/gm, '</DD><DD>' );
         foo = //gm;
         t = "DL";
-        inner = inner.replace(/^(?:\{(.*)\})(.*)(\n|$)/gm, '\t<DT>$1</DT><DD>$2</DD>\n');
-        chunk = '<' + t + '>\n' + inner + '</' + t + '>\n';
+        inner = inner.replace(/^(?:\{(.*)\})(.*)(\n|$)/gm, '\t<DT>$1</DT><DD>$2</DD>');
+        chunk = '<' + t + '>' + inner + '</' + t + '>';
         // PP
       }else if (token[27]) {
-        chunk = '<PP TYPE="' + token[27] + '" TITLE="'+token[28]+'" >\n'+markdownhtml.parse(markdownhtml.outdent(token[29]))+'\n</PP>';
+        chunk = '<PP TYPE="' + token[27] + '" TITLE="'+token[28]+'" >'+markdownhtml.parse(markdownhtml.outdent(token[29]))+'</PP>';
       }
       out += prev;
       out += chunk;
@@ -160,7 +160,7 @@ var markdownxml = {
     return (out + md.substring(last) + flush()).trim();
   },
   getPlainXml: function(md) {
-    return '<?xml version="1.0" encoding="UTF-8"?>\n' + "<CHAPTER>\n" + markdownxml.parse(md) + "\n</CHAPTER>";
+    return '<?xml version="1.0" encoding="UTF-8"?>' + "<CHAPTER>" + markdownxml.parse(md) + "</CHAPTER>";
   }
 
 };

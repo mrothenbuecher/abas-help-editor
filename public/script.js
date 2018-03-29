@@ -110,7 +110,7 @@ window.onload = function() {
 
 
     $("#pad").bind("blur", function() {
-/*
+
       var oldCaretPosition = caretPosition;
       caretPosition = null;
 
@@ -121,7 +121,7 @@ window.onload = function() {
         };
         infoDocument.submitOp([lastOP]);
       }
-*/
+
     });
 
 
@@ -183,7 +183,7 @@ window.onload = function() {
         if (cp != null && cp >= 0) {
           //if(i>0)
           //  cp += (1*i);
-          markdownText = [markdownText.slice(0, cp), '$$ ', markdownText.slice(cp)].join('');
+          markdownText = [markdownText.slice(0, cp), '$$', markdownText.slice(cp)].join('');
         }
       }
 
@@ -193,9 +193,11 @@ window.onload = function() {
     //console.log("XML: ",markdownxml);
     //html = converter.makeHtml(markdownText);
     xml = markdownxml.getPlainXml(markdownText);
+    xml = pd.xml(xml);
     html = markdownhtml.getAbasHtml(markdownText);
     htmlArea.innerHTML = html;
-    xmlArea.innerHTML = xml.encodeHTML().replace(/(?:\r\n|\r|\n)/g, '<br />');
+    //xmlArea.innerHTML = xml.encodeHTML().replace(/(?:\r\n|\r|\n)/g, '<br />');
+    $('#xml-content').val(xml);
   };
 
   var didChangeOccur = function() {

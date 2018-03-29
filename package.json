@@ -6,7 +6,7 @@
   "scripts": {
     "build_client": "node_modules/.bin/browserify client.js -o public/dist/bundle.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "run_debug" : "node server.js",
+    "run_debug": "node server.js",
     "start": "npm run build_client && node server.js"
   },
   "keywords": [
@@ -21,6 +21,7 @@
     "ejs": "^2.5.7",
     "express": "^4.14.0",
     "express-session": "^1.15.6",
+    "pretty-data": "^0.40.0",
     "serve-favicon": "^2.4.5",
     "sharedb": "^1.0.0-beta",
     "sharedb-access": "^4.2.0",

@@ -57,6 +57,23 @@ html, body, section, .full-height {
     width: 100%;
 }
 
+#xml-content {
+    font-family: Menlo,Monaco,Consolas,"Courier New",monospace;
+
+    border: none;
+    overflow: auto;
+    outline: none;
+    resize: none;
+
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+}
+
 #html {
     overflow: auto;
     display: block;

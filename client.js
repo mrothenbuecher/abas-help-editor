@@ -1,6 +1,8 @@
 var sharedb = require('sharedb/lib/client');
 var StringBinding = require('sharedb-string-binding');
 
+pd = require('pretty-data').pd;
+
 // Open WebSocket connection to ShareDB server
 var socket = new WebSocket('ws://' + window.location.host);
 var connection = new sharedb.Connection(socket);
