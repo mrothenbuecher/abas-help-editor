@@ -46,11 +46,27 @@ if (!String.prototype.toARGB) {
       (i & 0xFF).toString(16);
     while (val.length < 6)
       val = val + '0';
-    val = val.slice(0,6);
+    val = val.slice(0, 6);
     return val;
   };
 }
 
+(function ($, undefined) {
+    $.fn.getCursorPosition = function () {
+        var el = $(this).get(0);
+        var pos = 0;
+        if ('selectionStart' in el) {
+            pos = el.selectionStart;
+        } else if ('selection' in document) {
+            el.focus();
+            var Sel = document.selection.createRange();
+            var SelLength = document.selection.createRange().text.length;
+            Sel.moveStart('character', -el.value.length);
+            pos = Sel.text.length - SelLength;
+        }
+        return pos;
+    }
+})(jQuery);
 
 window.onload = function() {
   //var converter = new showdown.Converter();
@@ -207,7 +223,7 @@ window.onload = function() {
       for (var i = 0; i < keysSorted.length; i++) {
         var cp = carets[keysSorted[i]] + (2 * i);
         if (cp != null && cp >= 0) {
-          markdownText = markdownText.replace(/\$\$/,'<span class="cursor" style="color:#'+keysSorted[i].toARGB()+';">|<i>'+keysSorted[i]+'</i></span>');
+          markdownText = markdownText.replace(/\$\$/, '<span class="cursor" style="color:#' + keysSorted[i].toARGB() + ';">|<i>' + keysSorted[i] + '</i></span>');
         }
       }
 
@@ -236,6 +252,50 @@ window.onload = function() {
 
   // convert textarea on input change
   pad.addEventListener('input', convertTextAreaToMarkdown);
+
+  // Uploading files
+  $('#pad').on("drop", function(event) {
+    event.preventDefault();
+    //event.stopPropagation();
+    if (event.originalEvent.dataTransfer.files.length > 0) {
+
+      var foo = event.originalEvent.dataTransfer.files;
+      $.each(foo, function(i, file) {
+        var data = new FormData();
+        console.log("File:", file);
+        data.append('file', file);
+        $.ajax({
+          url: '/upload/'+docName+"/",
+          data: data,
+          cache: false,
+          contentType: false,
+          processData: false,
+          method: 'POST',
+          type: 'POST', // For jQuery < 1.9
+          success: function(data) {
+            //alert(data);
+            console.log("data",data);
+
+            var content = $('#pad').val();
+            var newContent = "";
+            var position = $("#pad").getCursorPosition();
+
+            if(data.isImg){
+              newContent = content.substr(0, position) + '!['+file.name+'](/'+data.path+'/'+encodeURIComponent(docName+'_'+file.name)+')' + content.substr(position);
+              //$('#pad').insertAtCaret('!['+file.name+']('+data.path+'/'+docName+'_'+file.name+')');
+            }else{
+              newContent = content.substr(0, position) + '['+file.name+'](/'+data.path+'/'+encodeURIComponent(docName+'_'+file.name)+')' + content.substr(position);
+              //$('#pad').insertAtCaret('['+file.name+']('+data.path+'/'+docName+'_'+file.name+')');
+            }
+            $('#pad').val(newContent);
+            toastr['success'](file.name, "Upload successfull");
+
+          }
+        });
+      });
+    }
+    return false;
+  });
 
   // convert on page load
   convertTextAreaToMarkdown();

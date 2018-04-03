@@ -1,9 +1,22 @@
+var fs = require('fs');
 const config = require('./lib/config.js').getConfig();
+
+init();
+
+function init() {
+  if (!fs.existsSync(__dirname + '/' + config.imgupload_dir)) {
+    fs.mkdirSync(__dirname + '/' + config.imgupload_dir);
+  }
+  if (!fs.existsSync(__dirname + '/' + config.fileupload_dir)) {
+    fs.mkdirSync(__dirname + '/' + config.fileupload_dir);
+  }
+}
+
 const XmlHandler = require('./lib/xml.js');
 const shareDbAccess = require('sharedb-access')
 var xmlHandler = new XmlHandler(config);
 
-xmlHandler.validate();
+// xmlHandler.validate();
 
 var http = require('http');
 var path = require('path')
@@ -12,6 +25,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var session = require('express-session')
 var favicon = require('serve-favicon')
+const fileUpload = require('express-fileupload');
 
 //shareDB
 var ShareDB = require('sharedb');
@@ -19,10 +33,13 @@ var ShareDBMingoMemory = require('sharedb-mingo-memory');
 var WebSocket = require('ws');
 var WebSocketJSONStream = require('websocket-json-stream');
 
-var share = new ShareDB({db: new ShareDBMingoMemory()});
+var share = new ShareDB({
+  db: new ShareDBMingoMemory()
+});
 shareDbAccess(share);
 
 createDoc(startServer);
+
 
 // Create initial document then fire callback
 function createDoc(callback, docName, username) {
@@ -51,7 +68,7 @@ function createDoc(callback, docName, username) {
       foo[username] = 0;
       doc2.create([foo], callback);
       return;
-    }else{
+    } else {
       var lastOP = {
         p: [username],
         li: 0
@@ -74,6 +91,7 @@ function startServer() {
     app.use(express.static(__dirname + '/public'));
 
     app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')))
+    app.use(fileUpload());
 
     // bodyParser
     app.use(bodyParser.json());
@@ -85,19 +103,22 @@ function startServer() {
     app.use(session({
       secret: config.session_secret,
       resave: false,
-      saveUninitialized : false,
+      saveUninitialized: false,
       cookie: {
         maxAge: 36000000
       }
     }))
 
+    // Login
     app.post('/auth', function(req, res) {
-      var response = {error:true};
+      var response = {
+        error: true
+      };
       res.setHeader('Content-Type', 'application/json');
-      if(req.body.username && !req.session.user){
+      if (req.body.username && !req.session.user) {
         req.session.user = req.body.username;
         response.error = false;
-      }else if(req.session.user){
+      } else if (req.session.user) {
         req.session.user = null;
       }
       res.send(JSON.stringify(response));
@@ -120,7 +141,10 @@ function startServer() {
         if (docName && docName !== "favicon.ico") {
           createDoc(startServer, docName, req.session.user)
         }
-        var data = {'docName': docName, user: req.session.user};
+        var data = {
+          'docName': docName,
+          user: req.session.user
+        };
         res.render('pad', data);
       } else {
         res.render('auth');
@@ -135,6 +159,66 @@ function startServer() {
       res.send(JSON.stringify(response));
     });
 
+    // upload File
+    app.post('/upload/(:id)', function(req, res) {
+      if (!req.session.user) {
+        return res.status(403).send('You need to be loggedin.');
+      }
+      if (!req.files)
+        return res.status(400).send('No files were uploaded.');
+
+        var docName = req.params.id;
+
+      // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
+      let file = req.files.file;
+
+      let img_regex = /.*png|.*jpg|.*jpeg|.*gif|.*bmp/gi;
+
+      let isImg = true;
+      let path = __dirname + '/'+config.imgupload_dir+'/' +docName+'_'+file.name;
+
+      if(!file.mimetype.match(img_regex)){
+        isImg = false;
+        path = __dirname + '/'+config.fileupload_dir+'/' +docName+'_'+file.name;
+      }
+
+      // Use the mv() method to place the file somewhere on your server
+      file.mv(path, function(err) {
+        if (err) {
+          console.error(err);
+          return res.status(500).send(err);
+        }
+        //TODO logging
+        var val = {};
+        val.isImg = isImg;
+        if(isImg){
+          val.path = config.imgupload_dir;
+        }
+        else{
+          val.path = config.fileupload_dir;
+        }
+        res.send(val);
+      });
+    });
+
+    // get the images
+    app.get('/'+config.imgupload_dir+'/:filename', function (req, res) {
+      if (!req.session.user) {
+        return res.status(403).send('You need to be loggedin.');
+      }
+      var filename = req.params.filename;
+      res.sendFile(__dirname + '/'+config.imgupload_dir+'/' + filename);
+    });
+
+    // get the files
+    app.get('/'+config.fileupload_dir+'/:filename', function (req, res) {
+      if (!req.session.user) {
+        return res.status(403).send('You need to be loggedin.');
+      }
+      var filename = req.params.filename;
+      res.sendFile(__dirname + '/'+config.fileupload_dir+'/' + filename);
+    });
+
     //app.use(express.static('static'));
     var server = http.createServer(app);
 
@@ -146,22 +230,22 @@ function startServer() {
       var stream = new WebSocketJSONStream(ws);
       share.listen(stream);
 
-      share.allowRead('abas-help-editor', function (docId, doc, session)  {
+      share.allowRead('abas-help-editor', function(docId, doc, session) {
         // console.log("session.user", session.user);
         return true;
       });
 
-      share.allowUpdate('abas-help-editor', function (docId, oldDoc, newDoc, ops, session) {
+      share.allowUpdate('abas-help-editor', function(docId, oldDoc, newDoc, ops, session) {
         // console.log("Update on:"+docId,oldDoc, newDoc);
         return true;
       });
 
-      share.allowRead('abas-help-editor-info', function (docId, doc, session)  {
+      share.allowRead('abas-help-editor-info', function(docId, doc, session) {
         // console.log("session.user", session.user);
         return true;
       });
 
-      share.allowUpdate('abas-help-editor-info', function (docId, oldDoc, newDoc, ops, session) {
+      share.allowUpdate('abas-help-editor-info', function(docId, oldDoc, newDoc, ops, session) {
         // console.log("Update on:"+docId,oldDoc, newDoc);
         return true;
       });

@@ -8,7 +8,7 @@ pd = require('pretty-data').pd;
 var socket = new WebSocket('ws://' + window.location.host);
 var connection = new sharedb.Connection(socket);
 
-var docName = document.location.pathname.substring(1).split("/")[1];
+docName = document.location.pathname.substring(1).split("/")[1];
 
 if (!docName) {
   docName = "text";
