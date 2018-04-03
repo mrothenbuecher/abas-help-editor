@@ -165,7 +165,7 @@ window.onload = function() {
     });
 
     infoDocument.on('op', function(op, source) {
-      console.log("Op:", op, source);
+      //console.log("Op:", op, source);
       carets[op[0].p[0]] = op[0].li;
       convertTextAreaToMarkdown();
     });
@@ -262,7 +262,7 @@ window.onload = function() {
       var foo = event.originalEvent.dataTransfer.files;
       $.each(foo, function(i, file) {
         var data = new FormData();
-        console.log("File:", file);
+        //console.log("File:", file);
         data.append('file', file);
         $.ajax({
           url: '/upload/'+docName+"/",
@@ -274,8 +274,6 @@ window.onload = function() {
           type: 'POST', // For jQuery < 1.9
           success: function(data) {
             //alert(data);
-            console.log("data",data);
-
             var content = $('#pad').val();
             var newContent = "";
             var position = $("#pad").getCursorPosition();
