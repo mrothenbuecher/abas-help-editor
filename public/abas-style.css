@@ -2,7 +2,7 @@
   height: 100%;
 }
 
-#html-content > * {
+#html-content>* {
   font-family: Segoe UI, Arial, Helvetica, sans-serif;
 }
 
@@ -49,7 +49,7 @@ h1.abas-header, h2.abas-header, h3.abas-header, h4.abas-header, h5.abas-header, 
 }
 
 ul.abas-list {
-  list-style-image:url(../img/ul_image.png);
+  list-style-image: url(../img/ul_image.png);
   display: block;
   list-style-type: disc;
   -webkit-margin-before: 1em;
@@ -60,7 +60,7 @@ ul.abas-list {
 }
 
 #html-content tt.abas {
-  font-family:"Courier New",monospace;
+  font-family: "Courier New", monospace;
 }
 
 #html-content div.abas-pp {
@@ -87,10 +87,29 @@ ul.abas-list {
   animation: 1s blink step-end infinite;
 }
 
-#html-content .cursor  > i{
+#html-content .cursor>i {
   font-size: 9pt;
   letter-spacing: 0px;
   position: absolute;
+}
+
+#html-content th {
+  background-color: #CBCCCE;
+}
+
+#html-content table {
+  border: 1px solid grey;
+}
+#html-content tr {
+  border: 1px solid #CBCCCE;
+}
+#html-content td {
+  border: 1px solid #CBCCCE;
+}
+
+#html-content caption {
+  caption-side: top;
+  text-align: center;
 }
 
 @keyframes "blink" {

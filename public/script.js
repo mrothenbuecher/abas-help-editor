@@ -200,11 +200,11 @@ window.onload = function() {
     var markdownText = pad.value;
 
     previousMarkdownValue = markdownText;
-    //console.log("XML: ",markdownxml);
-    //html = converter.makeHtml(markdownText);
+
     xml = markdownxml.getPlainXml(markdownText);
     xml = pd.xml(xml);
 
+    // insert carets
     if (carets) {
 
       keysSorted = Object.keys(carets).sort(function(a, b) {
@@ -214,8 +214,6 @@ window.onload = function() {
       for (var i = 0; i < keysSorted.length; i++) {
         var cp = carets[keysSorted[i]] + (2 * i);
         if (cp != null && cp >= 0) {
-          //if(i>0)
-          //  cp += (1*i);
           markdownText = [markdownText.slice(0, cp), '$$', markdownText.slice(cp)].join('');
         }
       }
@@ -230,7 +228,56 @@ window.onload = function() {
     }
 
     html = markdownhtml.getAbasHtml(markdownText);
-    htmlArea.innerHTML = html;
+    var $html = $('<div />',{html:html});
+     // generate table of contents if necessary
+    if($html.find('contents').length > 0){
+      $.each($html.find('contents'), function(i, val){
+        $val = $(val);
+        var query = "";
+        var max = 7;
+        // which is the max level
+        if(parseInt($val.attr("MAXLEVEL"))){
+          max = parseInt($val.attr("MAXLEVEL"))+1;
+        }
+        // first ??
+        var first = false;
+        if(parseInt($val.attr("FIRST"))){
+          first = true;
+        }
+        // generate search query
+        for(i=1;i<max;i++){
+          if($val.attr("ID")){
+            if(first)
+              query+="h"+i+"[ID^='"+$val.attr("ID")+"']";
+            else
+              query+="h"+i+"[ID^='"+$val.attr("ID")+".']";
+          }else{
+            query+="h"+i
+          }
+          if(i<max-1){
+            query+=","
+          }
+        }
+        // handle found Headings
+
+        var headings = $html.find(query);
+
+        if(headings.length > 0){
+          var content  ="";
+          if($val.attr("TITLE")){
+            content = "<h1>"+$val.attr("TITLE")+"</h1>";
+          }
+          $.each(headings, function(j, head){
+            var $head = $(head);
+            content+='<p><a href="#'+$head.attr("ID")+'">'+$head.text()+'</a></p>'
+          });
+          $val.replaceWith(content);
+          console.log("Query:",query,"Headings:", $html.find(query));
+        }
+
+      });
+    }
+    htmlArea.innerHTML = $html.html();
     //xmlArea.innerHTML = xml.encodeHTML().replace(/(?:\r\n|\r|\n)/g, '<br />');
     $('#xml-content').val(xml);
   };

@@ -118,7 +118,7 @@ var markdownhtml = {
           split = foo[1];
         }
 
-        chunk = '<' + t + ' class="abas-header">' + markdownhtml.parse(token[12] || token[16]) + '</' + t + '>\n';
+        chunk = '<' + t + (id ? ' ID="' + id + '" ' : "")+' class="abas-header">' + markdownhtml.parse(token[12] || token[16]) + '</' + t + '>\n';
       }
       // `PROGRAM`:
       else if (token[17]) {
