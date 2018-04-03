@@ -10,6 +10,12 @@ function init() {
   if (!fs.existsSync(__dirname + '/' + config.fileupload_dir)) {
     fs.mkdirSync(__dirname + '/' + config.fileupload_dir);
   }
+  if (!fs.existsSync(__dirname + '/' + config.output_dir_md)) {
+    fs.mkdirSync(__dirname + '/' + config.output_dir_md);
+  }
+  if (!fs.existsSync(__dirname + '/' + config.output_dir_xml)) {
+    fs.mkdirSync(__dirname + '/' + config.output_dir_xml);
+  }
 }
 
 const XmlHandler = require('./lib/xml.js');
@@ -53,12 +59,25 @@ function createDoc(callback, docName, username) {
   doc.fetch(function(err) {
     if (err) throw err;
     if (doc.type === null) {
-      doc.create('', callback);
+      var contents = null;
+      var path = __dirname + '/' + config.output_dir_md + '/' + docName + '.md';
+      if (fs.existsSync(path)) {
+        contents = fs.readFileSync(path, 'utf8');
+      }else{
+        fs.writeFileSync(path, '');
+        contents = "";
+      }
+      if (contents) {
+        doc.create(contents, callback);
+      } else {
+        doc.create('', callback);
+      }
       return;
     }
     callback();
   });
 
+  // for caret
   var doc2 = connection.get('abas-help-editor-info', docName);
   doc2.fetch(function(err) {
     if (err) throw err;
@@ -159,7 +178,7 @@ function startServer() {
       res.send(JSON.stringify(response));
     });
 
-    // upload File
+    // upload File for a document with it id
     app.post('/upload/(:id)', function(req, res) {
       if (!req.session.user) {
         return res.status(403).send('You need to be loggedin.');
@@ -167,7 +186,7 @@ function startServer() {
       if (!req.files)
         return res.status(400).send('No files were uploaded.');
 
-        var docName = req.params.id;
+      var docName = req.params.id;
 
       // The name of the input field (i.e. "sampleFile") is used to retrieve the uploaded file
       let file = req.files.file;
@@ -175,11 +194,11 @@ function startServer() {
       let img_regex = /.*png|.*jpg|.*jpeg|.*gif|.*bmp/gi;
 
       let isImg = true;
-      let path = __dirname + '/'+config.imgupload_dir+'/' +docName+'_'+file.name;
+      let path = __dirname + '/' + config.imgupload_dir + '/' + docName + '_' + file.name;
 
-      if(!file.mimetype.match(img_regex)){
+      if (!file.mimetype.match(img_regex)) {
         isImg = false;
-        path = __dirname + '/'+config.fileupload_dir+'/' +docName+'_'+file.name;
+        path = __dirname + '/' + config.fileupload_dir + '/' + docName + '_' + file.name;
       }
 
       // Use the mv() method to place the file somewhere on your server
@@ -191,10 +210,9 @@ function startServer() {
         //TODO logging
         var val = {};
         val.isImg = isImg;
-        if(isImg){
+        if (isImg) {
           val.path = config.imgupload_dir;
-        }
-        else{
+        } else {
           val.path = config.fileupload_dir;
         }
         res.send(val);
@@ -202,21 +220,21 @@ function startServer() {
     });
 
     // get the images
-    app.get('/'+config.imgupload_dir+'/:filename', function (req, res) {
+    app.get('/' + config.imgupload_dir + '/:filename', function(req, res) {
       if (!req.session.user) {
         return res.status(403).send('You need to be loggedin.');
       }
       var filename = req.params.filename;
-      res.sendFile(__dirname + '/'+config.imgupload_dir+'/' + filename);
+      res.sendFile(__dirname + '/' + config.imgupload_dir + '/' + filename);
     });
 
     // get the files
-    app.get('/'+config.fileupload_dir+'/:filename', function (req, res) {
+    app.get('/' + config.fileupload_dir + '/:filename', function(req, res) {
       if (!req.session.user) {
         return res.status(403).send('You need to be loggedin.');
       }
       var filename = req.params.filename;
-      res.sendFile(__dirname + '/'+config.fileupload_dir+'/' + filename);
+      res.sendFile(__dirname + '/' + config.fileupload_dir + '/' + filename);
     });
 
     //app.use(express.static('static'));
@@ -235,16 +253,21 @@ function startServer() {
         return true;
       });
 
+      // saving md file to filesystem
       share.allowUpdate('abas-help-editor', function(docId, oldDoc, newDoc, ops, session) {
         // console.log("Update on:"+docId,oldDoc, newDoc);
+        fs.writeFileSync(__dirname + '/' + config.output_dir_md + '/' + docId + '.md', newDoc);
+        //TODO generate XML
         return true;
       });
 
+      // caret position
       share.allowRead('abas-help-editor-info', function(docId, doc, session) {
         // console.log("session.user", session.user);
         return true;
       });
 
+      // caret position
       share.allowUpdate('abas-help-editor-info', function(docId, oldDoc, newDoc, ops, session) {
         // console.log("Update on:"+docId,oldDoc, newDoc);
         return true;
