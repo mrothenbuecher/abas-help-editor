@@ -78,13 +78,15 @@ window.onload = function() {
   var xmlArea = document.getElementById('xml-content');
 
   $('#prev-window').click(function(ev){
-    prevWindow = window.open("", "preview", "width=300,height=400,scrollbars=yes,titlebar=no");
-    prevWindow.document.documentElement.innerHTML = '<title>preview</title><link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet">'+$('#html-content').parent().html();
+    prevWindow = window.open("", "preview", "width=300,height=400,scrollbars=yes,titlebar=no,location=no");
+    prevWindow.document.write('<html><head><link rel="shortcut icon" href="/favicon.ico"><title>preview</title><link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet"></head><body>'+$('#html-content').get(0).outerHTML+'</body></html>');
+    prevWindow.document.close();
   });
 
   $('#xml-window').click(function(ev){
-    xmlWindow = window.open("", "xml", "width=300,height=400,scrollbars=yes,titlebar=no");
-    xmlWindow.document.documentElement.innerHTML = '<title>xml</title><link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet">'+$('#xml-content').parent().html();
+    xmlWindow = window.open("", "xml", "width=300,height=400,scrollbars=yes,titlebar=no,location=no");
+    xmlWindow.document.write('<html><head><link rel="shortcut icon" href="/favicon.ico"><link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet"><div id="xml"></head><body><textarea autofocus id="xml-content" disabled>'+$('#xml-content').val()+'</textarea></div></body></html>');
+    xmlWindow.document.close();
   });
 
 
@@ -217,6 +219,12 @@ window.onload = function() {
     xml = markdownxml.getPlainXml(markdownText);
     xml = pd.xml(xml);
 
+    // Update Subwindow
+    if(xmlWindow){
+      xmlWindow.document.write('<html><head><link rel="shortcut icon" href="/favicon.ico"><link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet"><div id="xml"></head><body><textarea autofocus id="xml-content" disabled>'+xml+'</textarea></div></body></html>');
+      xmlWindow.document.close();
+    }
+
     // insert carets
     if (carets) {
 
@@ -291,16 +299,14 @@ window.onload = function() {
       });
     }
     htmlArea.innerHTML = $html.html();
+    //Update subwindow
+    if(prevWindow){
+      prevWindow.document.write('<html><head><link rel="shortcut icon" href="/favicon.ico"><title>preview</title><link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet"></head><body>'+$('#html-content').get(0).outerHTML+"</body></html>");
+      prevWindow.document.close();
+    }
+
     //xmlArea.innerHTML = xml.encodeHTML().replace(/(?:\r\n|\r|\n)/g, '<br />');
     $('#xml-content').val(xml);
-
-    //Update subwindows
-    if(prevWindow){
-      prevWindow.document.documentElement.innerHTML = '<link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet">'+$('#html-content').parent().html();
-    }
-    if(xmlWindow){
-      xmlWindow.document.documentElement.innerHTML = '<link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet">'+$('#xml-content').parent().html();
-    }
 
   };
 
