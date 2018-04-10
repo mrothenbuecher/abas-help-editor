@@ -68,11 +68,24 @@ if (!String.prototype.toARGB) {
     }
 })(jQuery);
 
+var prevWindow = null;
+var xmlWindow = null;
+
 window.onload = function() {
   //var converter = new showdown.Converter();
   var pad = document.getElementById('pad');
   var htmlArea = document.getElementById('html-content');
   var xmlArea = document.getElementById('xml-content');
+
+  $('#prev-window').click(function(ev){
+    prevWindow = window.open("", "preview", "width=300,height=400,scrollbars=yes,titlebar=no");
+    prevWindow.document.documentElement.innerHTML = '<title>preview</title><link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet">'+$('#html-content').parent().html();
+  });
+
+  $('#xml-window').click(function(ev){
+    xmlWindow = window.open("", "xml", "width=300,height=400,scrollbars=yes,titlebar=no");
+    xmlWindow.document.documentElement.innerHTML = '<title>xml</title><link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet">'+$('#xml-content').parent().html();
+  });
 
 
   Split(['#input', '#output'], {
@@ -280,6 +293,15 @@ window.onload = function() {
     htmlArea.innerHTML = $html.html();
     //xmlArea.innerHTML = xml.encodeHTML().replace(/(?:\r\n|\r|\n)/g, '<br />');
     $('#xml-content').val(xml);
+
+    //Update subwindows
+    if(prevWindow){
+      prevWindow.document.documentElement.innerHTML = '<link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet">'+$('#html-content').parent().html();
+    }
+    if(xmlWindow){
+      xmlWindow.document.documentElement.innerHTML = '<link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet">'+$('#xml-content').parent().html();
+    }
+
   };
 
   var didChangeOccur = function() {

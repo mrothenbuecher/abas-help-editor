@@ -96,6 +96,15 @@ html, body, section, .full-height {
   z-index: 5000;
 }
 
+.info a {
+  text-decoration: none;
+  color: white;
+}
+
+.info a:hover {
+  text-decoration: underline;
+}
+
 .gutter {
     background-color: #eee;
     background-repeat: no-repeat;
