@@ -223,7 +223,6 @@ $(document).ready(function() {
 
     // insert carets
     if (carets) {
-
       keysSorted = Object.keys(carets).sort(function(a, b) {
         return carets[a] - carets[b]
       })
@@ -286,7 +285,9 @@ $(document).ready(function() {
           }
           $.each(headings, function(j, head){
             var $head = $(head);
-            content+='<p><a href="#'+$head.attr("ID")+'">'+$head.text()+'</a></p>'
+            var $heading = $head.clone();
+            $heading.find('.cursor').remove();
+            content+='<p><a href="#'+$heading.attr("ID")+'">'+$heading.text()+'</a></p>'
           });
           $val.replaceWith(content);
           console.log("Query:",query,"Headings:", $html.find(query));
@@ -295,6 +296,7 @@ $(document).ready(function() {
       });
     }
     $htmlArea.html($html.html());
+
     //Update subwindow
     if(prevWindow){
       prevWindow.document.write('<html><head><link rel="shortcut icon" href="/favicon.ico"><title>preview</title><link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet"></head><body>'+$('#html-content').get(0).outerHTML+"</body></html>");
