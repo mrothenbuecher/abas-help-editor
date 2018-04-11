@@ -1,5 +1,6 @@
 var fs = require('fs');
-const config = require('./lib/config.js').getConfig();
+const ConfigHandler = require('./lib/config.js');
+const config = ConfigHandler.getConfig();
 
 init();
 
@@ -20,7 +21,7 @@ function init() {
 
 const XmlHandler = require('./lib/xml.js');
 const shareDbAccess = require('sharedb-access')
-var xmlHandler = new XmlHandler(config);
+var xmlHandler = new XmlHandler(ConfigHandler);
 
 // xmlHandler.validate();
 
@@ -153,6 +154,7 @@ function startServer() {
         res.render('auth');
       }
     });
+
     // edit a document
     app.get('/edit/(:id)', function(req, res) {
       if (req.session.user) {
@@ -171,11 +173,16 @@ function startServer() {
     });
 
     app.post('/validate/xml/', function(req, res) {
-      console.log("Validate xml:", req.body);
-      var response = {};
-      //TODO
-      res.setHeader('Content-Type', 'application/json');
-      res.send(JSON.stringify(response));
+      if(!req.session.user){
+        return res.status(403).send('You need to be loggedin.');
+      }
+      if(req.body.xml ){
+        var response = xmlHandler.validate(req.body.xml);
+        res.setHeader('Content-Type', 'application/json');
+        return res.send(JSON.stringify(response));
+      }else{
+        return res.status(400).send('No xml was sent');
+      }
     });
 
     // upload File for a document with it id

@@ -176,7 +176,6 @@ $(document).ready(function() {
     });
 
     infoDocument.on('op', function(op, source) {
-      //console.log("Op:", op, source);
       carets[op[0].p[0]] = op[0].li;
       convertTextAreaToMarkdown();
     });
@@ -290,7 +289,6 @@ $(document).ready(function() {
             content+='<p><a href="#'+$heading.attr("ID")+'">'+$heading.text()+'</a></p>'
           });
           $val.replaceWith(content);
-          console.log("Query:",query,"Headings:", $html.find(query));
         }
 
       });
@@ -335,7 +333,6 @@ $pad.on("drop", function(event) {
       var foo = event.originalEvent.dataTransfer.files;
       $.each(foo, function(i, file) {
         var data = new FormData();
-        //console.log("File:", file);
         data.append('file', file);
         $.ajax({
           url: '/upload/'+docName+"/",
@@ -353,10 +350,8 @@ $pad.on("drop", function(event) {
 
             if(data.isImg){
               newContent = content.substr(0, position) + '!['+file.name+'](/'+data.path+'/'+encodeURIComponent(docName+'_'+file.name)+')' + content.substr(position);
-              //$('#pad').insertAtCaret('!['+file.name+']('+data.path+'/'+docName+'_'+file.name+')');
             }else{
               newContent = content.substr(0, position) + '['+file.name+'](/'+data.path+'/'+encodeURIComponent(docName+'_'+file.name)+')' + content.substr(position);
-              //$('#pad').insertAtCaret('['+file.name+']('+data.path+'/'+docName+'_'+file.name+')');
             }
             $pad.val(newContent);
             toastr['success'](file.name, "Upload successfull");
@@ -367,6 +362,31 @@ $pad.on("drop", function(event) {
     }
     return false;
   });
+
+$('#validate-xml').click(function(){
+  $.ajax({
+    url: '/validate/xml/',
+    data: JSON.stringify({
+      'xml':$xmlArea.val()
+    }),
+    cache: false,
+    contentType: "application/json; charset=utf-8",
+    dataType   : "json",
+    method: 'POST',
+    type: 'POST', // For jQuery < 1.9
+    success: function(data) {
+      console.log("Data: ",data);
+      if(data.xml && data.dtd.length){
+        toastr['info']("xml valid")
+      }else{
+        toastr['error'](JSON.stringify(data),"xml not valid")
+      }
+    },
+    error: function(data){
+      toastr['error'](JSON.stringify(data),"Validation failed")
+    }
+  });
+});
 
   // convert on page load
   convertTextAreaToMarkdown();
