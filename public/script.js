@@ -71,11 +71,14 @@ if (!String.prototype.toARGB) {
 var prevWindow = null;
 var xmlWindow = null;
 
-window.onload = function() {
-  //var converter = new showdown.Converter();
-  var pad = document.getElementById('pad');
-  var htmlArea = document.getElementById('html-content');
-  var xmlArea = document.getElementById('xml-content');
+$(document).ready(function() {
+  // var converter = new showdown.Converter();
+  // var pad = document.getElementById('pad');
+  var $pad = $('#pad');
+  // var htmlArea = document.getElementById('html-content');
+  var $htmlArea = $('#html-content');
+  // var xmlArea = document.getElementById('xml-content');
+  var $xmlArea = $('#xml-content');
 
   $('#prev-window').click(function(ev){
     prevWindow = window.open("", "preview", "width=300,height=400,scrollbars=yes,titlebar=no,location=no");
@@ -100,13 +103,6 @@ window.onload = function() {
     direction: 'vertical'
   });
 
-  /*
-  Split(['#input', '#xml'], {
-    sizes: [50, 50]
-  });
-  */
-  // make the tab act like a tab
-
   var caretPosition;
   var lastOP;
 
@@ -117,12 +113,12 @@ window.onload = function() {
 
     var oldCaretPosition = caretPosition;
 
-    var $pad = $('#pad')[0];
+    var hpad = $pad[0];
 
-    if ($pad.selectionStart < $pad.selectionEnd)
-      caretPosition = $pad.selectionStart;
+    if (hpad.selectionStart < hpad.selectionEnd)
+      caretPosition = hpad.selectionStart;
     else
-      caretPosition = $pad.selectionEnd;
+      caretPosition = hpad.selectionEnd;
     // convertTextAreaToMarkdown();
 
     if (oldCaretPosition != caretPosition) {
@@ -146,13 +142,13 @@ window.onload = function() {
   infoDocument.subscribe(function(err) {
     if (err) throw err;
 
-    $("#pad").bind("keydown keypress keyup click focus", function() {
+    $pad.bind("keydown keypress keyup click focus", function() {
       updateCaret();
     });
 
 
 
-    $("#pad").bind("blur", function() {
+    $pad.bind("blur", function() {
       var oldCaretPosition = caretPosition;
       caretPosition = null;
 
@@ -186,7 +182,7 @@ window.onload = function() {
     });
   });
 
-  pad.addEventListener('keydown', function(e) {
+  $pad.keydown( function(e) {
     if (e.keyCode === 9) { // tab was pressed
       // get caret position/selection
       var start = this.selectionStart;
@@ -212,7 +208,7 @@ window.onload = function() {
 
   // convert text area to markdown html
   var convertTextAreaToMarkdown = function() {
-    var markdownText = pad.value;
+    var markdownText = $pad.val();
 
     previousMarkdownValue = markdownText;
 
@@ -298,7 +294,7 @@ window.onload = function() {
 
       });
     }
-    htmlArea.innerHTML = $html.html();
+    $htmlArea.html($html.html());
     //Update subwindow
     if(prevWindow){
       prevWindow.document.write('<html><head><link rel="shortcut icon" href="/favicon.ico"><title>preview</title><link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet"></head><body>'+$('#html-content').get(0).outerHTML+"</body></html>");
@@ -306,12 +302,12 @@ window.onload = function() {
     }
 
     //xmlArea.innerHTML = xml.encodeHTML().replace(/(?:\r\n|\r|\n)/g, '<br />');
-    $('#xml-content').val(xml);
+    $xmlArea.val(xml);
 
   };
 
   var didChangeOccur = function() {
-    if (previousMarkdownValue != pad.value) {
+    if (previousMarkdownValue != $pad.val()) {
       return true;
     }
     return false;
@@ -326,10 +322,10 @@ window.onload = function() {
   }, 1000);
 
   // convert textarea on input change
-  pad.addEventListener('input', convertTextAreaToMarkdown);
+  $pad.on('input', convertTextAreaToMarkdown);
 
   // Uploading files
-  $('#pad').on("drop", function(event) {
+$pad.on("drop", function(event) {
     event.preventDefault();
     //event.stopPropagation();
     if (event.originalEvent.dataTransfer.files.length > 0) {
@@ -349,9 +345,9 @@ window.onload = function() {
           type: 'POST', // For jQuery < 1.9
           success: function(data) {
             //alert(data);
-            var content = $('#pad').val();
+            var content = $pad.val();
             var newContent = "";
-            var position = $("#pad").getCursorPosition();
+            var position = $pad.getCursorPosition();
 
             if(data.isImg){
               newContent = content.substr(0, position) + '!['+file.name+'](/'+data.path+'/'+encodeURIComponent(docName+'_'+file.name)+')' + content.substr(position);
@@ -360,7 +356,7 @@ window.onload = function() {
               newContent = content.substr(0, position) + '['+file.name+'](/'+data.path+'/'+encodeURIComponent(docName+'_'+file.name)+')' + content.substr(position);
               //$('#pad').insertAtCaret('['+file.name+']('+data.path+'/'+docName+'_'+file.name+')');
             }
-            $('#pad').val(newContent);
+            $pad.val(newContent);
             toastr['success'](file.name, "Upload successfull");
 
           }
@@ -373,4 +369,4 @@ window.onload = function() {
   // convert on page load
   convertTextAreaToMarkdown();
 
-};
+});
