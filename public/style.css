@@ -16,6 +16,9 @@ html, body, section, .full-height {
   width: 99%;
 }
 
+.card {
+  margin-top: 15px;
+}
 
 #container {
   padding-bottom: 56px;

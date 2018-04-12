@@ -6,21 +6,74 @@
 <head>
   <link rel="shortcut icon" href="/favicon.ico">
   <title>abas help editor</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
   <link href="/style.css" rel="stylesheet">
 </head>
 
 <body class="container-fluid">
 
-  <main role="main" class="container">
+  <main id="" role="main" class="container">
     <h1 class="mt-5">Help Editor for abas ERP</h1>
     <!-- //TODO -->
-    <p class="lead">Work Work Work</p>
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Playground</h5>
+            <a href="/edit/playground" class="card-link">Goto Playground</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">New File</h5>
+            <p class="card-text">
+              <div class="form-inline">
+                <div class="form-group">
+                  <input id="docName" type="text" class="form-control" placeholder="Document name" />
+                  <button id="createDoc" class="btn btn-default">create</button>
+                </div>
+              </div>
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Open existing files</h5>
+            <p class="card-text">
+              <% for(var i=0; i<md_files.length; i++) { %>
+                <p>
+                  <a href="/edit/<%= md_files[i].replace(new RegExp('\.md' + '$'), ''); %>">
+                    <%= md_files[i] %>
+                  </a>
+                </p>
+                <% }%>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
-  <script src="https://code.jquery.com/jquery-3.2.1.slim.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.js" ></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" ></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" ></script>
+
+  <script>
+    $(document).ready(function() {
+      $('#createDoc').click(function() {
+        var docName = $('#docName').val();
+        if (docName) {
+          window.open('/edit/' + docName, '_blank');
+          $('#docName').val("");
+        }
+      });
+    });
+  </script>
+
 </body>
 
 </html>

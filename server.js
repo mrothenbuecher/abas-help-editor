@@ -61,15 +61,19 @@ function createDoc(callback, docName, username) {
     if (err) throw err;
     if (doc.type === null) {
       var contents = null;
-      var path = __dirname + '/' + config.output_dir_md + '/' + docName + '.md';
-      if (fs.existsSync(path)) {
-        contents = fs.readFileSync(path, 'utf8');
-      } else {
-        fs.writeFileSync(path, '');
-        contents = "";
-      }
-      if (contents) {
-        doc.create(contents, callback);
+      if (docName != "playground") {
+        var path = __dirname + '/' + config.output_dir_md + '/' + docName + '.md';
+        if (fs.existsSync(path)) {
+          contents = fs.readFileSync(path, 'utf8');
+        } else {
+          fs.writeFileSync(path, '');
+          contents = "";
+        }
+        if (contents) {
+          doc.create(contents, callback);
+        } else {
+          doc.create('', callback);
+        }
       } else {
         doc.create('', callback);
       }
@@ -149,7 +153,7 @@ function startServer() {
           } else {
             response.reason = "username required";
           }
-        // auth with username and password
+          // auth with username and password
         } else {
           if (!req.body.username || !req.body.password) {
             response.reason = "username and password required";
@@ -157,12 +161,12 @@ function startServer() {
             var user = req.body.username;
             var pw = req.body.password;
             config.auth.forEach(function(entry, index) {
-              if(entry.username === user && entry.password === pw){
+              if (entry.username === user && entry.password === pw) {
                 req.session.user = req.body.username;
                 response.error = false;
               }
             });
-            if(response.error){
+            if (response.error) {
               response.reason = "username or password didn't match";
             }
           }
@@ -174,7 +178,13 @@ function startServer() {
     // Main
     app.get('/', function(req, res) {
       if (req.session.user) {
-        res.render('main');
+
+        var data = {
+          user: req.session.user,
+          md_files: ConfigHandler.getMd()
+        };
+
+        res.render('main', data);
       } else {
         var data = {};
         data.auth = (config.auth.length > 0);
@@ -229,7 +239,7 @@ function startServer() {
         if (response.xml && response.dtd.length) {
           try {
             fs.writeFileSync(__dirname + '/' + config.output_dir_xml + '/' + req.params.id + ".xml", req.body.xml, {
-              encoding:'utf8',
+              encoding: 'utf8',
               flag: 'w'
             });
             response.stored = true;

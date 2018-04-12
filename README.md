@@ -11,7 +11,6 @@ online markdown editor to create help files for the abas EPR
 node js 9.8.0 or higher and npm 5.8.0
 
 ## installation and start
-
 1. download repository
 2. `npm install`
 3. copy the  the dtd files (s3-303.dtd, s3-help.dtd, s3-ISOlat1.xml) from `$HOMEDIR/handbuch/defs` of your abas ERP to your dtd directory
@@ -19,7 +18,6 @@ node js 9.8.0 or higher and npm 5.8.0
 5. start with `npm start`
 
 ### settings
-
 | key             | type : default  | meaning                                                                                                             |
 | --------------- | --------------- | ------------------------------------------------------------------------------------------------------------------- |
 | port            | int : 8000      | port on which the web interface will be reachable                                                                   |
