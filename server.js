@@ -135,26 +135,50 @@ function startServer() {
         error: true
       };
       res.setHeader('Content-Type', 'application/json');
-      if (req.body.username && !req.session.user) {
-        req.session.user = req.body.username;
-        response.error = false;
-      } else if (req.session.user) {
+
+      // user already loggedin, logout
+      if (req.session.user) {
         req.session.user = null;
         response.error = false;
-      } else{
-        response.reason = "username required";
+      } else {
+        // auth only with user name
+        if (config.auth.length == 0) {
+          if (req.body.username) {
+            req.session.user = req.body.username;
+            response.error = false;
+          } else {
+            response.reason = "username required";
+          }
+        // auth with username and password
+        } else {
+          if (!req.body.username || !req.body.password) {
+            response.reason = "username and password required";
+          } else {
+            var user = req.body.username;
+            var pw = req.body.password;
+            config.auth.forEach(function(entry, index) {
+              if(entry.username === user && entry.password === pw){
+                req.session.user = req.body.username;
+                response.error = false;
+              }
+            });
+            if(response.error){
+              response.reason = "username or password didn't match";
+            }
+          }
+        }
       }
-      res.send(JSON.stringify(response));
+      return res.send(JSON.stringify(response));
     });
-
-
 
     // Main
     app.get('/', function(req, res) {
       if (req.session.user) {
         res.render('main');
       } else {
-        res.render('auth');
+        var data = {};
+        data.auth = (config.auth.length > 0);
+        res.render('auth', data);
       }
     });
 
@@ -171,7 +195,9 @@ function startServer() {
         };
         res.render('pad', data);
       } else {
-        res.render('auth');
+        var data = {};
+        data.auth = (config.auth.length > 0);
+        res.render('auth', data);
       }
     });
 
