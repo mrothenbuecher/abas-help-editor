@@ -5,6 +5,7 @@ online markdown editor to create help files for the abas EPR
 - write the help files for abas ERP with markdown
 - work parallel on one document (multiuser)
 - add images and files with drag and drop
+- see a life preview of the help page during you write
 
 ## requirements
 node js 9.8.0 or higher and npm 5.8.0
