@@ -2,8 +2,9 @@
 online markdown editor to create help files for the abas EPR
 
 ## benefits
-- write the help files with markdown
+- write the help files for abas ERP with markdown
 - work parallel on one document (multiuser)
+- add images and files with drag and drop
 
 ## requirements
 node js 9.8.0 or higher and npm 5.8.0
@@ -21,7 +22,7 @@ node js 9.8.0 or higher and npm 5.8.0
 | key             | type : default  | meaning                                                                                                             |
 | --------------- | --------------- | ------------------------------------------------------------------------------------------------------------------- |
 | port            | int : 8000      | port on which the web interface will be reachable                                                                   |
-| dtd_path        | string : empty  | absolute path to the dtd file(s)                                                                                    |
+| dtd_path        | array : empty   | absolute path to the dtd file(s) <br/> e.g. `["C:\\abas-help-editor\\dtd\\s3-help.dtd"]`                            |
 | output_dir_md   | string : "md"   | name of the directory where genereted mardown files will be stored                                                  |
 | output_dir_xml  | string : "xml"  | name of the directory where genereted xml files will be stored                                                      |
 | imgupload_dir   | string : "img"  | name of the directory where uploaded images will be stored                                                          |
