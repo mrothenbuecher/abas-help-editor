@@ -229,7 +229,8 @@ function startServer() {
         if (response.xml && response.dtd.length) {
           try {
             fs.writeFileSync(__dirname + '/' + config.output_dir_xml + '/' + req.params.id + ".xml", req.body.xml, {
-              flag: 'wx'
+              encoding:'utf8',
+              flag: 'w'
             });
             response.stored = true;
           } catch (e) {
