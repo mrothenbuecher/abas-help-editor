@@ -64,7 +64,7 @@ function createDoc(callback, docName, username) {
       var path = __dirname + '/' + config.output_dir_md + '/' + docName + '.md';
       if (fs.existsSync(path)) {
         contents = fs.readFileSync(path, 'utf8');
-      }else{
+      } else {
         fs.writeFileSync(path, '');
         contents = "";
       }
@@ -140,6 +140,9 @@ function startServer() {
         response.error = false;
       } else if (req.session.user) {
         req.session.user = null;
+        response.error = false;
+      } else{
+        response.reason = "username required";
       }
       res.send(JSON.stringify(response));
     });
@@ -172,15 +175,46 @@ function startServer() {
       }
     });
 
+    // validate xml
     app.post('/validate/xml/', function(req, res) {
-      if(!req.session.user){
+      if (!req.session.user) {
         return res.status(403).send('You need to be loggedin.');
       }
-      if(req.body.xml ){
+      if (req.body.xml) {
         var response = xmlHandler.validate(req.body.xml);
         res.setHeader('Content-Type', 'application/json');
         return res.send(JSON.stringify(response));
-      }else{
+      } else {
+        return res.status(400).send('No xml was sent');
+      }
+    });
+
+    // store our xml file
+    app.post('/store/xml/(:id)', function(req, res) {
+      if (!req.session.user) {
+        return res.status(403).send('You need to be loggedin.');
+      }
+      if (!req.params.id) {
+        return res.status(400).send('not document name was given');
+      }
+      if (req.body.xml) {
+        var response = xmlHandler.validate(req.body.xml);
+        response.stored = false;
+        if (response.xml && response.dtd.length) {
+          try {
+            fs.writeFileSync(__dirname + '/' + config.output_dir_xml + '/' + req.params.id + ".xml", req.body.xml, {
+              flag: 'wx'
+            });
+            response.stored = true;
+          } catch (e) {
+            console.error("storeing xml file", (__dirname + '/' + config.output_dir_xml + '/' + req.params.id + ".xml"), " failed", e);
+          } finally {
+
+          }
+        }
+        res.setHeader('Content-Type', 'application/json');
+        return res.send(JSON.stringify(response));
+      } else {
         return res.status(400).send('No xml was sent');
       }
     });

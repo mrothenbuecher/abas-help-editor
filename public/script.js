@@ -373,7 +373,6 @@ $('#validate-xml').click(function(){
     contentType: "application/json; charset=utf-8",
     dataType   : "json",
     method: 'POST',
-    type: 'POST', // For jQuery < 1.9
     success: function(data) {
       console.log("Data: ",data);
       if(data.xml && data.dtd.length){
@@ -384,6 +383,33 @@ $('#validate-xml').click(function(){
     },
     error: function(data){
       toastr['error'](JSON.stringify(data),"Validation failed")
+    }
+  });
+});
+
+$('#save-xml').click(function(){
+  var xmlContent = $xmlArea.val();
+  $.ajax({
+    url: '/store/xml/'+docName,
+    data: JSON.stringify({
+      'xml':xmlContent
+    }),
+    cache: false,
+    contentType: "application/json; charset=utf-8",
+    dataType   : "json",
+    method: 'POST',
+    success: function(data) {
+      console.log("Data: ",data);
+      if(data.stored){
+        toastr['info']("xml stored")
+      }else{
+        console.error("xml not stored", data);
+        toastr['error']("see console","xml not stored")
+      }
+    },
+    error: function(data){
+      console.error("storing failed", data);
+      toastr['error']("see console","storing failed")
     }
   });
 });
