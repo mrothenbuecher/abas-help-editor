@@ -5,7 +5,7 @@ pd = require('pretty-data').pd;
 
 var socket = null;
 // Open WebSocket connection to ShareDB server
-if(location.hostname != "heroku.com"){
+if(location.hostname != "a-h-e.herokuapp.com"){
   socket = new WebSocket('ws://' + window.location.host);
 }else{
   socket = new WebSocket('wss://' + window.location.host);
