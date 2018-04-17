@@ -234,6 +234,9 @@ function startServer() {
         return res.status(400).send('not document name was given');
       }
       if (req.body.xml) {
+        if(process.env.HEROKU){
+          return res.status(400).send('documents are not stored on heroku.');
+        }
         var response = xmlHandler.validate(req.body.xml);
         response.stored = false;
         if (response.xml && response.dtd.length) {
