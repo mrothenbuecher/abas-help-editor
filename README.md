@@ -1,5 +1,6 @@
 # abas-help-editor
 online markdown editor to create help files for the abas EPR
+[try it out](https://a-h-e.herokuapp.com/edit/playground)
 
 ## benefits
 - write the help files for abas ERP with markdown
