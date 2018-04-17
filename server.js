@@ -1,3 +1,5 @@
+process.title = "abas-help-editor";
+
 var fs = require('fs');
 const ConfigHandler = require('./lib/config.js');
 const config = ConfigHandler.getConfig();
