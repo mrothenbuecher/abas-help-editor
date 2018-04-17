@@ -319,9 +319,19 @@ function startServer() {
     var server = http.createServer(app);
 
     // Connect any incoming WebSocket connection to ShareDB
-    var wss = new WebSocket.Server({
-      server: server
-    });
+
+    var wss = null;
+
+    if(!process.env.HEROKU){
+      console.log(server);
+      var wss = new WebSocket.Server({
+        server: server
+      });
+    }else{
+      var wss = new WebSocket("wss://a-h-e.herokuapp.com");
+    }
+
+
     wss.on('connection', function(ws, req) {
       var stream = new WebSocketJSONStream(ws);
       share.listen(stream);
