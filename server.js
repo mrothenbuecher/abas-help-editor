@@ -323,12 +323,19 @@ function startServer() {
     var wss = null;
 
     if(!process.env.HEROKU){
-      console.log(server);
-      var wss = new WebSocket.Server({
+       wss = new WebSocket.Server({
         server: server
       });
     }else{
-      var wss = new WebSocket("wss://a-h-e.herokuapp.com");
+
+      const SocketServer = require('ws').Server;
+
+      /*
+       wss = new WebSocket.Server({
+        server: server
+      });
+      */
+      wss = new SocketServer({ server });
     }
 
 
