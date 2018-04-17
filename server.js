@@ -322,22 +322,9 @@ function startServer() {
 
     var wss = null;
 
-    if(!process.env.HEROKU){
        wss = new WebSocket.Server({
         server: server
       });
-    }else{
-
-      const SocketServer = require('ws').Server;
-
-      /*
-       wss = new WebSocket.Server({
-        server: server
-      });
-      */
-      wss = new SocketServer({ server });
-    }
-
 
     wss.on('connection', function(ws, req) {
       var stream = new WebSocketJSONStream(ws);
