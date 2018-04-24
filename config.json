@@ -2,5 +2,6 @@
   "port": 8001,
   "session_secret": "top secret",
   "dtd_path": ["C:\\abas-help-editor\\dtd\\s3-help.dtd"],
-  "public": true
+  "public": true,
+  "auto_validate": true
 }

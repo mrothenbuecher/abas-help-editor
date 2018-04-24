@@ -1,6 +1,7 @@
 # abas-help-editor
 online markdown editor to create help files for the abas EPR
-[try it out](https://a-h-e.herokuapp.com/edit/playground)
+
+[see demo](https://a-h-e.herokuapp.com/edit/playground)
 
 ## benefits
 - write the help files for abas ERP with markdown
@@ -14,7 +15,7 @@ node js 9.8.0 or higher and npm 5.8.0
 ## installation and start
 1. download repository
 2. `npm install`
-3. copy the  the dtd files (s3-303.dtd, s3-help.dtd, s3-ISOlat1.xml) from `$HOMEDIR/handbuch/defs` of your abas ERP to your dtd directory
+3. copy the dtd files (s3-303.dtd, s3-help.dtd, s3-ISOlat1.xml) from `$HOMEDIR/handbuch/defs` of your abas ERP to your dtd directory
 4. edit config.js accordingly (change atleast the session_secret and dtd_path property)
 5. start with `npm start`
 
@@ -30,3 +31,4 @@ node js 9.8.0 or higher and npm 5.8.0
 | session_secret  | string : empty  | *need to be set before first run*                                                                                   |
 | auth            | array : empty   | array of objects `{"username":"...","password":"..."},...` <br/> if emtpy only the username will be requested       |
 | public          | bool : false    | false means only via localhost reachable, true means public                                                         |
+| auto_validate   | bool : false    | automatic validate xml                                                                                              |

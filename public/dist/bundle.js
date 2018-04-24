@@ -4,8 +4,13 @@ var StringBinding = require('sharedb-string-binding');
 
 pd = require('pretty-data').pd;
 
+var socket = null;
 // Open WebSocket connection to ShareDB server
-var socket = new WebSocket('ws://' + window.location.host);
+if (location.protocol != 'https:'){
+  socket = new WebSocket('ws://' + window.location.host);
+}else{
+  socket = new WebSocket('wss://' + window.location.host);
+}
 var connection = new sharedb.Connection(socket);
 
 docName = document.location.pathname.substring(1).split("/")[1];

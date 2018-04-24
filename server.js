@@ -203,7 +203,8 @@ function startServer() {
         }
         var data = {
           'docName': docName,
-          user: req.session.user
+          user: req.session.user,
+          'config': config
         };
         res.render('pad', data);
       } else {
