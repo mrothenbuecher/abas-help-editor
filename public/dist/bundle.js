@@ -1,4 +1,4 @@
-(function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(require,module,exports){
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 var sharedb = require('sharedb/lib/client');
 var StringBinding = require('sharedb-string-binding');
 
@@ -52,8 +52,16 @@ infoDocument = connection.get('abas-help-editor-info', docName);
 // OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 // USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+var objectCreate = Object.create || objectCreatePolyfill
+var objectKeys = Object.keys || objectKeysPolyfill
+var bind = Function.prototype.bind || functionBindPolyfill
+
 function EventEmitter() {
-  this._events = this._events || {};
+  if (!this._events || !Object.prototype.hasOwnProperty.call(this, '_events')) {
+    this._events = objectCreate(null);
+    this._eventsCount = 0;
+  }
+
   this._maxListeners = this._maxListeners || undefined;
 }
 module.exports = EventEmitter;
@@ -66,272 +74,485 @@ EventEmitter.prototype._maxListeners = undefined;
 
 // By default EventEmitters will print a warning if more than 10 listeners are
 // added to it. This is a useful default which helps finding memory leaks.
-EventEmitter.defaultMaxListeners = 10;
+var defaultMaxListeners = 10;
+
+var hasDefineProperty;
+try {
+  var o = {};
+  if (Object.defineProperty) Object.defineProperty(o, 'x', { value: 0 });
+  hasDefineProperty = o.x === 0;
+} catch (err) { hasDefineProperty = false }
+if (hasDefineProperty) {
+  Object.defineProperty(EventEmitter, 'defaultMaxListeners', {
+    enumerable: true,
+    get: function() {
+      return defaultMaxListeners;
+    },
+    set: function(arg) {
+      // check whether the input is a positive number (whose value is zero or
+      // greater and not a NaN).
+      if (typeof arg !== 'number' || arg < 0 || arg !== arg)
+        throw new TypeError('"defaultMaxListeners" must be a positive number');
+      defaultMaxListeners = arg;
+    }
+  });
+} else {
+  EventEmitter.defaultMaxListeners = defaultMaxListeners;
+}
 
 // Obviously not all Emitters should be limited to 10. This function allows
 // that to be increased. Set to zero for unlimited.
-EventEmitter.prototype.setMaxListeners = function(n) {
-  if (!isNumber(n) || n < 0 || isNaN(n))
-    throw TypeError('n must be a positive number');
+EventEmitter.prototype.setMaxListeners = function setMaxListeners(n) {
+  if (typeof n !== 'number' || n < 0 || isNaN(n))
+    throw new TypeError('"n" argument must be a positive number');
   this._maxListeners = n;
   return this;
 };
 
-EventEmitter.prototype.emit = function(type) {
-  var er, handler, len, args, i, listeners;
+function $getMaxListeners(that) {
+  if (that._maxListeners === undefined)
+    return EventEmitter.defaultMaxListeners;
+  return that._maxListeners;
+}
 
-  if (!this._events)
-    this._events = {};
+EventEmitter.prototype.getMaxListeners = function getMaxListeners() {
+  return $getMaxListeners(this);
+};
 
-  // If there is no 'error' event listener then throw.
-  if (type === 'error') {
-    if (!this._events.error ||
-        (isObject(this._events.error) && !this._events.error.length)) {
-      er = arguments[1];
-      if (er instanceof Error) {
-        throw er; // Unhandled 'error' event
-      } else {
-        // At least give some kind of context to the user
-        var err = new Error('Uncaught, unspecified "error" event. (' + er + ')');
-        err.context = er;
-        throw err;
-      }
-    }
+// These standalone emit* functions are used to optimize calling of event
+// handlers for fast cases because emit() itself often has a variable number of
+// arguments and can be deoptimized because of that. These functions always have
+// the same number of arguments and thus do not get deoptimized, so the code
+// inside them can execute faster.
+function emitNone(handler, isFn, self) {
+  if (isFn)
+    handler.call(self);
+  else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+    for (var i = 0; i < len; ++i)
+      listeners[i].call(self);
   }
+}
+function emitOne(handler, isFn, self, arg1) {
+  if (isFn)
+    handler.call(self, arg1);
+  else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+    for (var i = 0; i < len; ++i)
+      listeners[i].call(self, arg1);
+  }
+}
+function emitTwo(handler, isFn, self, arg1, arg2) {
+  if (isFn)
+    handler.call(self, arg1, arg2);
+  else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+    for (var i = 0; i < len; ++i)
+      listeners[i].call(self, arg1, arg2);
+  }
+}
+function emitThree(handler, isFn, self, arg1, arg2, arg3) {
+  if (isFn)
+    handler.call(self, arg1, arg2, arg3);
+  else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+    for (var i = 0; i < len; ++i)
+      listeners[i].call(self, arg1, arg2, arg3);
+  }
+}
 
-  handler = this._events[type];
+function emitMany(handler, isFn, self, args) {
+  if (isFn)
+    handler.apply(self, args);
+  else {
+    var len = handler.length;
+    var listeners = arrayClone(handler, len);
+    for (var i = 0; i < len; ++i)
+      listeners[i].apply(self, args);
+  }
+}
 
-  if (isUndefined(handler))
+EventEmitter.prototype.emit = function emit(type) {
+  var er, handler, len, args, i, events;
+  var doError = (type === 'error');
+
+  events = this._events;
+  if (events)
+    doError = (doError && events.error == null);
+  else if (!doError)
     return false;
 
-  if (isFunction(handler)) {
-    switch (arguments.length) {
-      // fast cases
-      case 1:
-        handler.call(this);
-        break;
-      case 2:
-        handler.call(this, arguments[1]);
-        break;
-      case 3:
-        handler.call(this, arguments[1], arguments[2]);
-        break;
-      // slower
-      default:
-        args = Array.prototype.slice.call(arguments, 1);
-        handler.apply(this, args);
+  // If there is no 'error' event listener then throw.
+  if (doError) {
+    if (arguments.length > 1)
+      er = arguments[1];
+    if (er instanceof Error) {
+      throw er; // Unhandled 'error' event
+    } else {
+      // At least give some kind of context to the user
+      var err = new Error('Unhandled "error" event. (' + er + ')');
+      err.context = er;
+      throw err;
     }
-  } else if (isObject(handler)) {
-    args = Array.prototype.slice.call(arguments, 1);
-    listeners = handler.slice();
-    len = listeners.length;
-    for (i = 0; i < len; i++)
-      listeners[i].apply(this, args);
+    return false;
+  }
+
+  handler = events[type];
+
+  if (!handler)
+    return false;
+
+  var isFn = typeof handler === 'function';
+  len = arguments.length;
+  switch (len) {
+      // fast cases
+    case 1:
+      emitNone(handler, isFn, this);
+      break;
+    case 2:
+      emitOne(handler, isFn, this, arguments[1]);
+      break;
+    case 3:
+      emitTwo(handler, isFn, this, arguments[1], arguments[2]);
+      break;
+    case 4:
+      emitThree(handler, isFn, this, arguments[1], arguments[2], arguments[3]);
+      break;
+      // slower
+    default:
+      args = new Array(len - 1);
+      for (i = 1; i < len; i++)
+        args[i - 1] = arguments[i];
+      emitMany(handler, isFn, this, args);
   }
 
   return true;
 };
 
-EventEmitter.prototype.addListener = function(type, listener) {
+function _addListener(target, type, listener, prepend) {
   var m;
+  var events;
+  var existing;
 
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
+  if (typeof listener !== 'function')
+    throw new TypeError('"listener" argument must be a function');
 
-  if (!this._events)
-    this._events = {};
+  events = target._events;
+  if (!events) {
+    events = target._events = objectCreate(null);
+    target._eventsCount = 0;
+  } else {
+    // To avoid recursion in the case that type === "newListener"! Before
+    // adding it to the listeners, first emit "newListener".
+    if (events.newListener) {
+      target.emit('newListener', type,
+          listener.listener ? listener.listener : listener);
 
-  // To avoid recursion in the case that type === "newListener"! Before
-  // adding it to the listeners, first emit "newListener".
-  if (this._events.newListener)
-    this.emit('newListener', type,
-              isFunction(listener.listener) ?
-              listener.listener : listener);
+      // Re-assign `events` because a newListener handler could have caused the
+      // this._events to be assigned to a new object
+      events = target._events;
+    }
+    existing = events[type];
+  }
 
-  if (!this._events[type])
+  if (!existing) {
     // Optimize the case of one listener. Don't need the extra array object.
-    this._events[type] = listener;
-  else if (isObject(this._events[type]))
-    // If we've already got an array, just append.
-    this._events[type].push(listener);
-  else
-    // Adding the second element, need to change to array.
-    this._events[type] = [this._events[type], listener];
-
-  // Check for listener leak
-  if (isObject(this._events[type]) && !this._events[type].warned) {
-    if (!isUndefined(this._maxListeners)) {
-      m = this._maxListeners;
+    existing = events[type] = listener;
+    ++target._eventsCount;
+  } else {
+    if (typeof existing === 'function') {
+      // Adding the second element, need to change to array.
+      existing = events[type] =
+          prepend ? [listener, existing] : [existing, listener];
     } else {
-      m = EventEmitter.defaultMaxListeners;
+      // If we've already got an array, just append.
+      if (prepend) {
+        existing.unshift(listener);
+      } else {
+        existing.push(listener);
+      }
     }
 
-    if (m && m > 0 && this._events[type].length > m) {
-      this._events[type].warned = true;
-      console.error('(node) warning: possible EventEmitter memory ' +
-                    'leak detected. %d listeners added. ' +
-                    'Use emitter.setMaxListeners() to increase limit.',
-                    this._events[type].length);
-      if (typeof console.trace === 'function') {
-        // not supported in IE 10
-        console.trace();
+    // Check for listener leak
+    if (!existing.warned) {
+      m = $getMaxListeners(target);
+      if (m && m > 0 && existing.length > m) {
+        existing.warned = true;
+        var w = new Error('Possible EventEmitter memory leak detected. ' +
+            existing.length + ' "' + String(type) + '" listeners ' +
+            'added. Use emitter.setMaxListeners() to ' +
+            'increase limit.');
+        w.name = 'MaxListenersExceededWarning';
+        w.emitter = target;
+        w.type = type;
+        w.count = existing.length;
+        if (typeof console === 'object' && console.warn) {
+          console.warn('%s: %s', w.name, w.message);
+        }
       }
     }
   }
 
-  return this;
+  return target;
+}
+
+EventEmitter.prototype.addListener = function addListener(type, listener) {
+  return _addListener(this, type, listener, false);
 };
 
 EventEmitter.prototype.on = EventEmitter.prototype.addListener;
 
-EventEmitter.prototype.once = function(type, listener) {
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
+EventEmitter.prototype.prependListener =
+    function prependListener(type, listener) {
+      return _addListener(this, type, listener, true);
+    };
 
-  var fired = false;
-
-  function g() {
-    this.removeListener(type, g);
-
-    if (!fired) {
-      fired = true;
-      listener.apply(this, arguments);
+function onceWrapper() {
+  if (!this.fired) {
+    this.target.removeListener(this.type, this.wrapFn);
+    this.fired = true;
+    switch (arguments.length) {
+      case 0:
+        return this.listener.call(this.target);
+      case 1:
+        return this.listener.call(this.target, arguments[0]);
+      case 2:
+        return this.listener.call(this.target, arguments[0], arguments[1]);
+      case 3:
+        return this.listener.call(this.target, arguments[0], arguments[1],
+            arguments[2]);
+      default:
+        var args = new Array(arguments.length);
+        for (var i = 0; i < args.length; ++i)
+          args[i] = arguments[i];
+        this.listener.apply(this.target, args);
     }
   }
+}
 
-  g.listener = listener;
-  this.on(type, g);
+function _onceWrap(target, type, listener) {
+  var state = { fired: false, wrapFn: undefined, target: target, type: type, listener: listener };
+  var wrapped = bind.call(onceWrapper, state);
+  wrapped.listener = listener;
+  state.wrapFn = wrapped;
+  return wrapped;
+}
 
+EventEmitter.prototype.once = function once(type, listener) {
+  if (typeof listener !== 'function')
+    throw new TypeError('"listener" argument must be a function');
+  this.on(type, _onceWrap(this, type, listener));
   return this;
 };
 
-// emits a 'removeListener' event iff the listener was removed
-EventEmitter.prototype.removeListener = function(type, listener) {
-  var list, position, length, i;
-
-  if (!isFunction(listener))
-    throw TypeError('listener must be a function');
-
-  if (!this._events || !this._events[type])
-    return this;
-
-  list = this._events[type];
-  length = list.length;
-  position = -1;
-
-  if (list === listener ||
-      (isFunction(list.listener) && list.listener === listener)) {
-    delete this._events[type];
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-
-  } else if (isObject(list)) {
-    for (i = length; i-- > 0;) {
-      if (list[i] === listener ||
-          (list[i].listener && list[i].listener === listener)) {
-        position = i;
-        break;
-      }
-    }
-
-    if (position < 0)
+EventEmitter.prototype.prependOnceListener =
+    function prependOnceListener(type, listener) {
+      if (typeof listener !== 'function')
+        throw new TypeError('"listener" argument must be a function');
+      this.prependListener(type, _onceWrap(this, type, listener));
       return this;
+    };
 
-    if (list.length === 1) {
-      list.length = 0;
-      delete this._events[type];
-    } else {
-      list.splice(position, 1);
-    }
+// Emits a 'removeListener' event if and only if the listener was removed.
+EventEmitter.prototype.removeListener =
+    function removeListener(type, listener) {
+      var list, events, position, i, originalListener;
 
-    if (this._events.removeListener)
-      this.emit('removeListener', type, listener);
-  }
+      if (typeof listener !== 'function')
+        throw new TypeError('"listener" argument must be a function');
 
-  return this;
+      events = this._events;
+      if (!events)
+        return this;
+
+      list = events[type];
+      if (!list)
+        return this;
+
+      if (list === listener || list.listener === listener) {
+        if (--this._eventsCount === 0)
+          this._events = objectCreate(null);
+        else {
+          delete events[type];
+          if (events.removeListener)
+            this.emit('removeListener', type, list.listener || listener);
+        }
+      } else if (typeof list !== 'function') {
+        position = -1;
+
+        for (i = list.length - 1; i >= 0; i--) {
+          if (list[i] === listener || list[i].listener === listener) {
+            originalListener = list[i].listener;
+            position = i;
+            break;
+          }
+        }
+
+        if (position < 0)
+          return this;
+
+        if (position === 0)
+          list.shift();
+        else
+          spliceOne(list, position);
+
+        if (list.length === 1)
+          events[type] = list[0];
+
+        if (events.removeListener)
+          this.emit('removeListener', type, originalListener || listener);
+      }
+
+      return this;
+    };
+
+EventEmitter.prototype.removeAllListeners =
+    function removeAllListeners(type) {
+      var listeners, events, i;
+
+      events = this._events;
+      if (!events)
+        return this;
+
+      // not listening for removeListener, no need to emit
+      if (!events.removeListener) {
+        if (arguments.length === 0) {
+          this._events = objectCreate(null);
+          this._eventsCount = 0;
+        } else if (events[type]) {
+          if (--this._eventsCount === 0)
+            this._events = objectCreate(null);
+          else
+            delete events[type];
+        }
+        return this;
+      }
+
+      // emit removeListener for all listeners on all events
+      if (arguments.length === 0) {
+        var keys = objectKeys(events);
+        var key;
+        for (i = 0; i < keys.length; ++i) {
+          key = keys[i];
+          if (key === 'removeListener') continue;
+          this.removeAllListeners(key);
+        }
+        this.removeAllListeners('removeListener');
+        this._events = objectCreate(null);
+        this._eventsCount = 0;
+        return this;
+      }
+
+      listeners = events[type];
+
+      if (typeof listeners === 'function') {
+        this.removeListener(type, listeners);
+      } else if (listeners) {
+        // LIFO order
+        for (i = listeners.length - 1; i >= 0; i--) {
+          this.removeListener(type, listeners[i]);
+        }
+      }
+
+      return this;
+    };
+
+function _listeners(target, type, unwrap) {
+  var events = target._events;
+
+  if (!events)
+    return [];
+
+  var evlistener = events[type];
+  if (!evlistener)
+    return [];
+
+  if (typeof evlistener === 'function')
+    return unwrap ? [evlistener.listener || evlistener] : [evlistener];
+
+  return unwrap ? unwrapListeners(evlistener) : arrayClone(evlistener, evlistener.length);
+}
+
+EventEmitter.prototype.listeners = function listeners(type) {
+  return _listeners(this, type, true);
 };
 
-EventEmitter.prototype.removeAllListeners = function(type) {
-  var key, listeners;
-
-  if (!this._events)
-    return this;
-
-  // not listening for removeListener, no need to emit
-  if (!this._events.removeListener) {
-    if (arguments.length === 0)
-      this._events = {};
-    else if (this._events[type])
-      delete this._events[type];
-    return this;
-  }
-
-  // emit removeListener for all listeners on all events
-  if (arguments.length === 0) {
-    for (key in this._events) {
-      if (key === 'removeListener') continue;
-      this.removeAllListeners(key);
-    }
-    this.removeAllListeners('removeListener');
-    this._events = {};
-    return this;
-  }
-
-  listeners = this._events[type];
-
-  if (isFunction(listeners)) {
-    this.removeListener(type, listeners);
-  } else if (listeners) {
-    // LIFO order
-    while (listeners.length)
-      this.removeListener(type, listeners[listeners.length - 1]);
-  }
-  delete this._events[type];
-
-  return this;
-};
-
-EventEmitter.prototype.listeners = function(type) {
-  var ret;
-  if (!this._events || !this._events[type])
-    ret = [];
-  else if (isFunction(this._events[type]))
-    ret = [this._events[type]];
-  else
-    ret = this._events[type].slice();
-  return ret;
-};
-
-EventEmitter.prototype.listenerCount = function(type) {
-  if (this._events) {
-    var evlistener = this._events[type];
-
-    if (isFunction(evlistener))
-      return 1;
-    else if (evlistener)
-      return evlistener.length;
-  }
-  return 0;
+EventEmitter.prototype.rawListeners = function rawListeners(type) {
+  return _listeners(this, type, false);
 };
 
 EventEmitter.listenerCount = function(emitter, type) {
-  return emitter.listenerCount(type);
+  if (typeof emitter.listenerCount === 'function') {
+    return emitter.listenerCount(type);
+  } else {
+    return listenerCount.call(emitter, type);
+  }
 };
 
-function isFunction(arg) {
-  return typeof arg === 'function';
+EventEmitter.prototype.listenerCount = listenerCount;
+function listenerCount(type) {
+  var events = this._events;
+
+  if (events) {
+    var evlistener = events[type];
+
+    if (typeof evlistener === 'function') {
+      return 1;
+    } else if (evlistener) {
+      return evlistener.length;
+    }
+  }
+
+  return 0;
 }
 
-function isNumber(arg) {
-  return typeof arg === 'number';
+EventEmitter.prototype.eventNames = function eventNames() {
+  return this._eventsCount > 0 ? Reflect.ownKeys(this._events) : [];
+};
+
+// About 1.5x faster than the two-arg version of Array#splice().
+function spliceOne(list, index) {
+  for (var i = index, k = i + 1, n = list.length; k < n; i += 1, k += 1)
+    list[i] = list[k];
+  list.pop();
 }
 
-function isObject(arg) {
-  return typeof arg === 'object' && arg !== null;
+function arrayClone(arr, n) {
+  var copy = new Array(n);
+  for (var i = 0; i < n; ++i)
+    copy[i] = arr[i];
+  return copy;
 }
 
-function isUndefined(arg) {
-  return arg === void 0;
+function unwrapListeners(arr) {
+  var ret = new Array(arr.length);
+  for (var i = 0; i < ret.length; ++i) {
+    ret[i] = arr[i].listener || arr[i];
+  }
+  return ret;
+}
+
+function objectCreatePolyfill(proto) {
+  var F = function() {};
+  F.prototype = proto;
+  return new F;
+}
+function objectKeysPolyfill(obj) {
+  var keys = [];
+  for (var k in obj) if (Object.prototype.hasOwnProperty.call(obj, k)) {
+    keys.push(k);
+  }
+  return k;
+}
+function functionBindPolyfill(context) {
+  var fn = this;
+  return function () {
+    return fn.apply(context, arguments);
+  };
 }
 
 },{}],3:[function(require,module,exports){
@@ -2138,14 +2359,22 @@ function isSubpath(path, testPath) {
   return true;
 }
 
-},{"text-diff-binding":19}],11:[function(require,module,exports){
+},{"text-diff-binding":25}],11:[function(require,module,exports){
 (function (process){
 var Doc = require('./doc');
 var Query = require('./query');
+var SnapshotVersionRequest = require('./snapshot-request/snapshot-version-request');
+var SnapshotTimestampRequest = require('./snapshot-request/snapshot-timestamp-request');
 var emitter = require('../emitter');
 var ShareDBError = require('../error');
 var types = require('../types');
 var util = require('../util');
+var logger = require('../logger');
+
+function connectionState(socket) {
+  if (socket.readyState === 0 || socket.readyState === 1) return 'connecting';
+  return 'disconnected';
+}
 
 /**
  * Handles communication with the sharejs server and provides queries and
@@ -2170,12 +2399,16 @@ function Connection(socket) {
   // (created documents MUST BE UNIQUE)
   this.collections = {};
 
-  // Each query is created with an id that the server uses when it sends us
-  // info about the query (updates, etc)
+  // Each query and snapshot request is created with an id that the server uses when it sends us
+  // info about the request (updates, etc)
   this.nextQueryId = 1;
+  this.nextSnapshotRequestId = 1;
 
   // Map from query ID -> query object.
   this.queries = {};
+
+  // Map from snapshot request ID -> snapshot request
+  this._snapshotRequests = {};
 
   // A unique message number for the given id
   this.seq = 1;
@@ -2189,6 +2422,8 @@ function Connection(socket) {
   this.agent = null;
 
   this.debug = false;
+
+  this.state = connectionState(socket);
 
   this.bindToSocket(socket);
 }
@@ -2223,7 +2458,7 @@ Connection.prototype.bindToSocket = function(socket) {
 
   this.socket = socket;
 
-  // State of the connection. The correspoding events are emmited when this changes
+  // State of the connection. The corresponding events are emitted when this changes
   //
   // - 'connecting'   The connection is still being established, or we are still
   //                    waiting on the server to send us the initialization message
@@ -2232,7 +2467,8 @@ Connection.prototype.bindToSocket = function(socket) {
   // - 'disconnected' Connection is closed, but it will reconnect automatically
   // - 'closed'       The connection was closed by the client, and will not reconnect
   // - 'stopped'      The connection was closed by the server, and will not reconnect
-  this.state = (socket.readyState === 0 || socket.readyState === 1) ? 'connecting' : 'disconnected';
+  var newState = connectionState(socket);
+  this._setState(newState);
 
   // This is a helper variable the document uses to see whether we're
   // currently in a 'live' state. It is true if and only if we're connected
@@ -2245,11 +2481,11 @@ Connection.prototype.bindToSocket = function(socket) {
       var data = (typeof event.data === 'string') ?
         JSON.parse(event.data) : event.data;
     } catch (err) {
-      console.warn('Failed to parse message', event);
+      logger.warn('Failed to parse message', event);
       return;
     }
 
-    if (connection.debug) console.log('RECV', JSON.stringify(data));
+    if (connection.debug) logger.info('RECV', JSON.stringify(data));
 
     var request = {data: data};
     connection.emit('receive', request);
@@ -2360,6 +2596,10 @@ Connection.prototype.handleMessage = function(message) {
     case 'bu':
       return this._handleBulkMessage(message, '_handleUnsubscribe');
 
+    case 'nf':
+    case 'nt':
+      return this._handleSnapshotFetch(err, message);
+
     case 'f':
       var doc = this.getExisting(message.c, message.d);
       if (doc) doc._handleFetch(err, message.data);
@@ -2378,7 +2618,7 @@ Connection.prototype.handleMessage = function(message) {
       return;
 
     default:
-      console.warn('Ignoring unrecognized message', message);
+      logger.warn('Ignoring unrecognized message', message);
   }
 };
 
@@ -2400,7 +2640,7 @@ Connection.prototype._handleBulkMessage = function(message, method) {
       if (doc) doc[method](message.error);
     }
   } else {
-    console.error('Invalid bulk message', message);
+    logger.error('Invalid bulk message', message);
   }
 };
 
@@ -2443,6 +2683,11 @@ Connection.prototype._setState = function(newState, reason) {
     for (var id in docs) {
       docs[id]._onConnectionStateChanged();
     }
+  }
+  // Emit the event to all snapshots
+  for (var id in this._snapshotRequests) {
+    var snapshotRequest = this._snapshotRequests[id];
+    snapshotRequest._onConnectionStateChanged();
   }
   this.endBulk();
 
@@ -2547,7 +2792,7 @@ Connection.prototype.sendOp = function(doc, op) {
  * Sends a message down the socket
  */
 Connection.prototype.send = function(message) {
-  if (this.debug) console.log('SEND', JSON.stringify(message));
+  if (this.debug) logger.info('SEND', JSON.stringify(message));
 
   this.emit('send', message);
   this.socket.send(JSON.stringify(message));
@@ -2657,7 +2902,8 @@ Connection.prototype.createSubscribeQuery = function(collection, q, options, cal
 Connection.prototype.hasPending = function() {
   return !!(
     this._firstDoc(hasPending) ||
-    this._firstQuery(hasPending)
+    this._firstQuery(hasPending) ||
+    this._firstSnapshotRequest()
   );
 };
 function hasPending(object) {
@@ -2684,6 +2930,11 @@ Connection.prototype.whenNothingPending = function(callback) {
   var query = this._firstQuery(hasPending);
   if (query) {
     query.once('ready', this._nothingPendingRetry(callback));
+    return;
+  }
+  var snapshotRequest = this._firstSnapshotRequest();
+  if (snapshotRequest) {
+    snapshotRequest.once('ready', this._nothingPendingRetry(callback));
     return;
   }
   // Call back when no pending operations
@@ -2719,10 +2970,80 @@ Connection.prototype._firstQuery = function(fn) {
   }
 };
 
+Connection.prototype._firstSnapshotRequest = function () {
+  for (var id in this._snapshotRequests) {
+    return this._snapshotRequests[id];
+  }
+};
+
+/**
+ * Fetch a read-only snapshot at a given version
+ *
+ * @param collection - the collection name of the snapshot
+ * @param id - the ID of the snapshot
+ * @param version (optional) - the version number to fetch
+ * @param callback - (error, snapshot) => void, where snapshot takes the following schema:
+ *
+ * {
+ *   id: string;         // ID of the snapshot
+ *   v: number;          // version number of the snapshot
+ *   type: string;       // the OT type of the snapshot, or null if it doesn't exist or is deleted
+ *   data: any;          // the snapshot
+ * }
+ *
+ */
+Connection.prototype.fetchSnapshot = function(collection, id, version, callback) {
+  if (typeof version === 'function') {
+    callback = version;
+    version = null;
+  }
+
+  var requestId = this.nextSnapshotRequestId++;
+  var snapshotRequest = new SnapshotVersionRequest(this, requestId, collection, id, version, callback);
+  this._snapshotRequests[snapshotRequest.requestId] = snapshotRequest;
+  snapshotRequest.send();
+};
+
+/**
+ * Fetch a read-only snapshot at a given timestamp
+ *
+ * @param collection - the collection name of the snapshot
+ * @param id - the ID of the snapshot
+ * @param timestamp (optional) - the timestamp to fetch
+ * @param callback - (error, snapshot) => void, where snapshot takes the following schema:
+ *
+ * {
+ *   id: string;         // ID of the snapshot
+ *   v: number;          // version number of the snapshot
+ *   type: string;       // the OT type of the snapshot, or null if it doesn't exist or is deleted
+ *   data: any;          // the snapshot
+ * }
+ *
+ */
+Connection.prototype.fetchSnapshotByTimestamp = function (collection, id, timestamp, callback) {
+  if (typeof timestamp === 'function') {
+    callback = timestamp;
+    timestamp = null;
+  }
+
+  var requestId = this.nextSnapshotRequestId++;
+  var snapshotRequest = new SnapshotTimestampRequest(this, requestId, collection, id, timestamp, callback);
+  this._snapshotRequests[snapshotRequest.requestId] = snapshotRequest;
+  snapshotRequest.send();
+};
+
+Connection.prototype._handleSnapshotFetch = function (error, message) {
+  var snapshotRequest = this._snapshotRequests[message.id];
+  if (!snapshotRequest) return;
+  delete this._snapshotRequests[message.id];
+  snapshotRequest._handleResponse(error, message);
+};
+
 }).call(this,require('_process'))
-},{"../emitter":15,"../error":16,"../types":17,"../util":18,"./doc":12,"./query":14,"_process":9}],12:[function(require,module,exports){
+},{"../emitter":18,"../error":19,"../logger":20,"../types":23,"../util":24,"./doc":12,"./query":14,"./snapshot-request/snapshot-timestamp-request":16,"./snapshot-request/snapshot-version-request":17,"_process":9}],12:[function(require,module,exports){
 (function (process){
 var emitter = require('../emitter');
+var logger = require('../logger');
 var ShareDBError = require('../error');
 var types = require('../types');
 
@@ -2828,11 +3149,19 @@ emitter.mixin(Doc);
 Doc.prototype.destroy = function(callback) {
   var doc = this;
   doc.whenNothingPending(function() {
-    doc.connection._destroyDoc(doc);
     if (doc.wantSubscribe) {
-      return doc.unsubscribe(callback);
+      doc.unsubscribe(function(err) {
+        if (err) {
+          if (callback) return callback(err);
+          return doc.emit('error', err);
+        }
+        doc.connection._destroyDoc(doc);
+        if (callback) callback();
+      });
+    } else {
+      doc.connection._destroyDoc(doc);
+      if (callback) callback();
     }
-    if (callback) callback();
   });
 };
 
@@ -3042,8 +3371,11 @@ Doc.prototype._handleOp = function(err, message) {
   }
 
   this.version++;
-  this._otApply(message, false);
-  return;
+  try {
+    this._otApply(message, false);
+  } catch (error) {
+    return this._hardRollback(error);
+  }
 };
 
 // Called whenever (you guessed it!) the connection state changes. This will
@@ -3227,8 +3559,8 @@ function transformX(client, server) {
 Doc.prototype._otApply = function(op, source) {
   if (op.op) {
     if (!this.type) {
-      var err = new ShareDBError(4015, 'Cannot apply op to uncreated document. ' + this.collection + '.' + this.id);
-      return this.emit('error', err);
+      // Throw here, because all usage of _otApply should be wrapped with a try/catch
+      throw new ShareDBError(4015, 'Cannot apply op to uncreated document. ' + this.collection + '.' + this.id);
     }
 
     // Iteratively apply multi-component remote operations and rollback ops
@@ -3370,8 +3702,12 @@ Doc.prototype._submit = function(op, source, callback) {
     if (this.type.normalize) op.op = this.type.normalize(op.op);
   }
 
-  this._pushOp(op, callback);
-  this._otApply(op, source);
+  try {
+    this._pushOp(op, callback);
+    this._otApply(op, source);
+  } catch (error) {
+    return this._hardRollback(error);
+  }
 
   // The call to flush is delayed so if submit() is called multiple times
   // synchronously, all the ops are combined before being sent to the server.
@@ -3548,7 +3884,7 @@ Doc.prototype._opAcknowledged = function(message) {
   } else if (message.v !== this.version) {
     // We should already be at the same version, because the server should
     // have sent all the ops that have happened before acknowledging our op
-    console.warn('Invalid version from server. Expected: ' + this.version + ' Received: ' + message.v, message);
+    logger.warn('Invalid version from server. Expected: ' + this.version + ' Received: ' + message.v, message);
 
     // Fetching should get us back to a working document state
     return this.fetch();
@@ -3582,7 +3918,11 @@ Doc.prototype._rollback = function(err) {
     // I'm still not 100% sure about this functionality, because its really a
     // local op. Basically, the problem is that if the client's op is rejected
     // by the server, the editor window should update to reflect the undo.
-    this._otApply(op, false);
+    try {
+      this._otApply(op, false);
+    } catch (error) {
+      return this._hardRollback(error);
+    }
 
     this._clearInflightOp(err);
     return;
@@ -3592,22 +3932,34 @@ Doc.prototype._rollback = function(err) {
 };
 
 Doc.prototype._hardRollback = function(err) {
+  // Store pending ops so that we can notify their callbacks of the error.
+  // We combine the inflight op and the pending ops, because it's possible
+  // to hit a condition where we have no inflight op, but we do have pending
+  // ops. This can happen when an invalid op is submitted, which causes us
+  // to hard rollback before the pending op was flushed.
+  var pendingOps = [];
+  if (this.inflightOp) pendingOps.push(this.inflightOp);
+  pendingOps = pendingOps.concat(this.pendingOps);
+
   // Cancel all pending ops and reset if we can't invert
-  var op = this.inflightOp;
-  var pending = this.pendingOps;
   this._setType(null);
   this.version = null;
   this.inflightOp = null;
   this.pendingOps = [];
 
-  // Fetch the latest from the server to get us back into a working state
+  // Fetch the latest version from the server to get us back into a working state
   var doc = this;
   this.fetch(function() {
-    var called = op && callEach(op.callbacks, err);
-    for (var i = 0; i < pending.length; i++) {
-      callEach(pending[i].callbacks, err);
+    // We want to check that no errors are swallowed, so we check that:
+    // - there are callbacks to call, and
+    // - that every single pending op called a callback
+    // If there are no ops queued, or one of them didn't handle the error,
+    // then we emit the error.
+    var allOpsHadCallbacks = !!pendingOps.length;
+    for (var i = 0; i < pendingOps.length; i++) {
+      allOpsHadCallbacks = callEach(pendingOps[i].callbacks, err) && allOpsHadCallbacks;
     }
-    if (err && !called) return doc.emit('error', err);
+    if (err && !allOpsHadCallbacks) return doc.emit('error', err);
   });
 };
 
@@ -3634,14 +3986,15 @@ function callEach(callbacks, err) {
 }
 
 }).call(this,require('_process'))
-},{"../emitter":15,"../error":16,"../types":17,"_process":9}],13:[function(require,module,exports){
+},{"../emitter":18,"../error":19,"../logger":20,"../types":23,"_process":9}],13:[function(require,module,exports){
 exports.Connection = require('./connection');
 exports.Doc = require('./doc');
 exports.Error = require('../error');
 exports.Query = require('./query');
 exports.types = require('../types');
+exports.logger = require('../logger');
 
-},{"../error":16,"../types":17,"./connection":11,"./doc":12,"./query":14}],14:[function(require,module,exports){
+},{"../error":19,"../logger":20,"../types":23,"./connection":11,"./doc":12,"./query":14}],14:[function(require,module,exports){
 (function (process){
 var emitter = require('../emitter');
 
@@ -3844,7 +4197,119 @@ Query.prototype._handleExtra = function(extra) {
 };
 
 }).call(this,require('_process'))
-},{"../emitter":15,"_process":9}],15:[function(require,module,exports){
+},{"../emitter":18,"_process":9}],15:[function(require,module,exports){
+var Snapshot = require('../../snapshot');
+var emitter = require('../../emitter');
+
+module.exports = SnapshotRequest;
+
+function SnapshotRequest(connection, requestId, collection, id, callback) {
+  emitter.EventEmitter.call(this);
+
+  if (typeof callback !== 'function') {
+    throw new Error('Callback is required for SnapshotRequest');
+  }
+
+  this.requestId = requestId;
+  this.connection = connection;
+  this.id = id;
+  this.collection = collection;
+  this.callback = callback;
+
+  this.sent = false;
+}
+emitter.mixin(SnapshotRequest);
+
+SnapshotRequest.prototype.send = function () {
+  if (!this.connection.canSend) {
+    return;
+  }
+
+  this.connection.send(this._message());
+  this.sent = true;
+};
+
+SnapshotRequest.prototype._onConnectionStateChanged = function () {
+  if (this.connection.canSend) {
+    if (!this.sent) this.send();
+  } else {
+    // If the connection can't send, then we've had a disconnection, and even if we've already sent
+    // the request previously, we need to re-send it over this reconnected client, so reset the
+    // sent flag to false.
+    this.sent = false;
+  }
+};
+
+SnapshotRequest.prototype._handleResponse = function (error, message) {
+  this.emit('ready');
+
+  if (error) {
+    return this.callback(error);
+  }
+
+  var metadata = message.meta ? message.meta : null;
+  var snapshot = new Snapshot(this.id, message.v, message.type, message.data, metadata);
+
+  this.callback(null, snapshot);
+};
+
+},{"../../emitter":18,"../../snapshot":22}],16:[function(require,module,exports){
+var SnapshotRequest = require('./snapshot-request');
+var util = require('../../util');
+
+module.exports = SnapshotTimestampRequest;
+
+function SnapshotTimestampRequest(connection, requestId, collection, id, timestamp, callback) {
+  SnapshotRequest.call(this, connection, requestId, collection, id, callback);
+
+  if (!util.isValidTimestamp(timestamp)) {
+    throw new Error('Snapshot timestamp must be a positive integer or null');
+  }
+
+  this.timestamp = timestamp;
+}
+
+SnapshotTimestampRequest.prototype = Object.create(SnapshotRequest.prototype);
+
+SnapshotTimestampRequest.prototype._message = function () {
+  return {
+    a: 'nt',
+    id: this.requestId,
+    c: this.collection,
+    d: this.id,
+    ts: this.timestamp,
+  };
+};
+
+},{"../../util":24,"./snapshot-request":15}],17:[function(require,module,exports){
+var SnapshotRequest = require('./snapshot-request');
+var util = require('../../util');
+
+module.exports = SnapshotVersionRequest;
+
+function SnapshotVersionRequest (connection, requestId, collection, id, version, callback) {
+  SnapshotRequest.call(this, connection, requestId, collection, id, callback);
+
+  if (!util.isValidVersion(version)) {
+    throw new Error('Snapshot version must be a positive integer or null');
+  }
+
+  this.version = version;
+}
+
+SnapshotVersionRequest.prototype = Object.create(SnapshotRequest.prototype);
+
+SnapshotVersionRequest.prototype._message = function () {
+  return {
+    a: 'nf',
+    id: this.requestId,
+    c: this.collection,
+    d: this.id,
+    v: this.version,
+  };
+};
+
+},{"../../util":24,"./snapshot-request":15}],18:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 
 exports.EventEmitter = EventEmitter;
@@ -3856,7 +4321,7 @@ function mixin(Constructor) {
   }
 }
 
-},{"events":2}],16:[function(require,module,exports){
+},{"events":2}],19:[function(require,module,exports){
 var makeError = require('make-error');
 
 function ShareDBError(code, message) {
@@ -3868,7 +4333,45 @@ makeError(ShareDBError);
 
 module.exports = ShareDBError;
 
-},{"make-error":3}],17:[function(require,module,exports){
+},{"make-error":3}],20:[function(require,module,exports){
+var Logger = require('./logger');
+var logger = new Logger();
+module.exports = logger;
+
+},{"./logger":21}],21:[function(require,module,exports){
+var SUPPORTED_METHODS = [
+  'info',
+  'warn',
+  'error'
+];
+
+function Logger() {
+  this.setMethods(console);
+}
+module.exports = Logger;
+
+Logger.prototype.setMethods = function (overrides) {
+  overrides = overrides || {};
+  var logger = this;
+
+  SUPPORTED_METHODS.forEach(function (method) {
+    if (typeof overrides[method] === 'function') {
+      logger[method] = overrides[method];
+    }
+  });
+};
+
+},{}],22:[function(require,module,exports){
+module.exports = Snapshot;
+function Snapshot(id, version, type, data, meta) {
+  this.id = id;
+  this.v = version;
+  this.type = type;
+  this.data = data;
+  this.m = meta;
+}
+
+},{}],23:[function(require,module,exports){
 
 exports.defaultType = require('ot-json0').type;
 
@@ -3881,7 +4384,7 @@ exports.register = function(type) {
 
 exports.register(exports.defaultType);
 
-},{"ot-json0":5}],18:[function(require,module,exports){
+},{"ot-json0":5}],24:[function(require,module,exports){
 
 exports.doNothing = doNothing;
 function doNothing() {}
@@ -3891,7 +4394,23 @@ exports.hasKeys = function(object) {
   return false;
 };
 
-},{}],19:[function(require,module,exports){
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/isInteger#Polyfill
+exports.isInteger = Number.isInteger || function (value) {
+  return typeof value === 'number' &&
+    isFinite(value) &&
+    Math.floor(value) === value;
+};
+
+exports.isValidVersion = function (version) {
+  if (version === null) return true;
+  return exports.isInteger(version) && version >= 0;
+};
+
+exports.isValidTimestamp = function (timestamp) {
+  return exports.isValidVersion(timestamp);
+};
+
+},{}],25:[function(require,module,exports){
 module.exports = TextDiffBinding;
 
 function TextDiffBinding(element) {
