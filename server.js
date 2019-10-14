@@ -63,7 +63,7 @@ function createDoc(callback, docName, username) {
     if (err) throw err;
     if (doc.type === null) {
       var contents = null;
-      if (docName != "playground") {
+      if (docName != "playground" && docName != "text") {
         var path = __dirname + '/' + config.output_dir_md + '/' + docName + '.md';
         if (fs.existsSync(path)) {
           contents = fs.readFileSync(path, 'utf8');

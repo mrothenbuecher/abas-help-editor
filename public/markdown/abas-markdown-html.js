@@ -33,7 +33,7 @@ var markdownhtml = {
 
   /** Parse Markdown into an HTML String. */
   parse: function(md) {
-    var tokenizer = /((?:^|\n+)(?:\n---+|\* \*(?: \*)+)\n)|(?:^```(\w*)\n([\s\S]*?)\n```$)|((?:(?:^|\n+)(?:\t|  {2,}).+)+\n*)|((?:(?:^|\n)([>*+-]|\d+\.)\s+.*)+)|(?:\!\[([^\]]*?)\]\(([^\)].+)\))|(\[)|(\](?:\(([^\)]+?)\))?)|(?:(?:^|\n+)([^\s].*)\n(\-{3,}|={3,})(?:\n+|$))|(?:(?:^|\n+)(#{1,6}))\s*(?:\{(?:([a-zA-Z].*?))\})?(.+)(?:\n+|$)|(?:`\n([\s\S]*?)\n`)|(  \n\n*|\n{2,}|__|\*{2,}|\${2})|(?:\*(?:\{([a-zA-Z]\w*)\})?\s*(.*)?\*)|(?:\{\{([a-zA-Z].*)+\}\})|(?:(?:^|\n+)(\.{2}))\s*(?:\{(?:([a-zA-Z].*?))\})?(.+)(?:\n+|$)|((?:(?:^|\n)([;;]{2})\s+.*)+)|(?:~(?:\{(.*)\}){1}(.*)*\n([\s\S]*?)\n~)/gm,
+    var tokenizer = /((?:^|\n+)(?:\n---+|\* \*(?: \*)+)\n)|(?:^```(\w*)\n([\s\S]*?)\n```$)|((?:(?:^|\n+)(?:\t|  {2,}).+)+\n*)|((?:(?:^|\n)([>*+-]|\d+\.)\s+.*)+)|(?:\!\[([^\]]*?)\]\(([^\)].+)\))|(\[)|(\](?:\(([^\)]+?)\))?)|(?:(?:^|\n+)([^\s].*)\n(\-{3,}|={3,})(?:\n+|$))|(?:(?:^|\n+)(#{1,6}))\s*(?:\{(?:([a-zA-Z].*?))\})?(.+)(?:\n+|$)|(?:`\n([\s\S]*?)\n`)|(  \n\n*|\n{2,}|__|\*{2,}|\${2})|(?:\*(?:\{([a-zA-Z].*)\})?\s*(.*)?\*)|(?:\{\{([a-zA-Z].*)+\}\})|(?:(?:^|\n+)(\.{2}))\s*(?:\{(?:([a-zA-Z].*?))\})?(.+)(?:\n+|$)|((?:(?:^|\n)([;;]{2})\s+.*)+)|(?:~(?:\{(.*)\}){1}(.*)*\n([\s\S]*?)\n~)/gm,
       //|(?:^(.*)$)
       // (?:^(.*?)\n)
       context = [],
@@ -109,7 +109,7 @@ var markdownhtml = {
       }
       // Headings:
       else if (token[12] || token[14]) {
-        t = 'H' + (token[14] ? token[14].length : (token[13][0] === '=' ? 1 : 2));
+        t = 'h' + (token[14] ? token[14].length : (token[13][0] === '=' ? 1 : 2));
 
         var id = token[15];
         var split = null;
@@ -131,7 +131,7 @@ var markdownhtml = {
       }
       // REF
       else if (token[19] && token[20]) {
-        chunk = '<REF ID="' + token[19] + '">' + token[20] + '</REF>'
+        chunk = '<a href="#'+token[19]+'">' + token[20] + '</a>'
       }
       // MARK
       else if (token[21]) {
@@ -144,9 +144,12 @@ var markdownhtml = {
       // DL - definition list
       } else if (token[26]) {
         t = token[26];
+        // ;; abschneiden
         inner = markdownhtml.parse(markdownhtml.outdent(token[25].replace(/^\s*[;]{2}/gm, '')));
         inner = inner.replace(/\|\|/gm, '</td><td class="DD" bgcolor="#FFFFFF" style="FONT-FAMILY:Segoe UI,Arial,Helvetica,sans-serif;font-size:100%" valign="top">' );
         inner = inner.replace(/^(?:\{(.*)\})(.*)(\n|$)/gm, '<tr><td class="DT" bgcolor="#CBCCCE" style="FONT-FAMILY:Segoe UI,Arial,Helvetica,sans-serif;font-size:100%" valign="top">$1</td><td class="DD" bgcolor="#FFFFFF" style="FONT-FAMILY:Segoe UI,Arial,Helvetica,sans-serif;font-size:100%" valign="top">$2</td></tr>');
+
+        // zusammenbauen
         chunk = '<table class="DL" bgcolor="#CBCCCE" border="1" cellpadding="5" cellspacing="1" style="border-collapse:collapse;border-color:#CBCCCE"><tbody>' + inner + '</tbody></table>';
       }
       // PP
