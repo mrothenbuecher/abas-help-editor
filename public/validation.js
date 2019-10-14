@@ -16,7 +16,6 @@ $(document).on("validation_call", function(event, arg1){
     dataType: "json",
     method: 'POST',
     success: function(data) {
-      console.log("Data: ", data);
       if (data.xml && data.dtd.length) {
         // toastr['info']("xml valid")
         $('#validationstate').addClass("btn-outline-success");
@@ -33,6 +32,8 @@ $(document).on("validation_call", function(event, arg1){
       $('#validationstate').text("xml: not valide");
       //toastr['error'](JSON.stringify(data), "Validation failed")
     }
+  }).always(function( data, textStatus, errorThrown ) { 
+      console.log("Data: ", data);
   });
 
 });
