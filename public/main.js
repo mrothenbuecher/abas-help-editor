@@ -73,6 +73,9 @@ var xmlWindow = null;
 
 $(document).ready(function() {
 
+  var $htmlArea = $('#html-content');
+  var $xmlArea = $('#xml-content');
+
   Split(['#input', '#output'], {
     sizes: [50, 50]
   });
