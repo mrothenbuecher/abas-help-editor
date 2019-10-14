@@ -163,7 +163,7 @@ $(document).ready(function() {
     });
   });
 
-  $('#save-xml').click(function() {
+  function storeXml(){
     var xmlContent = $xmlArea.val();
     $.ajax({
       url: '/store/xml/' + docName,
@@ -188,5 +188,22 @@ $(document).ready(function() {
         toastr['error']("see console", "storing failed")
       }
     });
+  }
+
+  $('#save-xml').click(function() {
+    storeXml();
   });
+
+  hotkeys.filter = ({ target }) => {
+    /*console.log(target.tag);
+    return (target.tagName === 'INPUT') ;
+    */
+    return true;
+  }
+
+  hotkeys('ctrl+s', function (event, handler){
+    event.preventDefault();
+    storeXml();
+  });
+
 });
