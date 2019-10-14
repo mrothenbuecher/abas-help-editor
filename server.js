@@ -248,6 +248,21 @@ function startServer() {
               encoding: 'utf8',
               flag: 'w'
             });
+            var files = [];
+            fs.readdirSync(__dirname + '/' + config.output_dir_xml).forEach(file => {
+              if(file != "customhelp.dat" )files.push(file);
+            });
+            fs.writeFileSync(__dirname + '/' + config.output_dir_xml+'/customhelp.dat', files.join('\n'), {
+              encoding: 'utf8',
+              flag: 'w'
+            }, (err) => {
+                // throws an error, you could also catch it here
+                if (err) throw err;
+
+                // success case, the file was saved
+                console.log('customhelp.dat saved!');
+                response.customhelp = files;
+            });
             response.stored = true;
           } catch (e) {
             console.error("storeing xml file", (__dirname + '/' + config.output_dir_xml + '/' + req.params.id + ".xml"), " failed", e);
