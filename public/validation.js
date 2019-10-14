@@ -20,17 +20,17 @@ $(document).on("validation_call", function(event, arg1){
       if (data.xml && data.dtd.length) {
         // toastr['info']("xml valid")
         $('#validationstate').addClass("btn-outline-success");
-        $('#validationstate').text("valide");
+        $('#validationstate').text("xml: valide");
 
       } else {
         $('#validationstate').addClass("btn-outline-danger");
-        $('#validationstate').text("not valide");
+        $('#validationstate').text("xml: not valide");
         // toastr['error'](JSON.stringify(data), "xml not valid")
       }
     },
     error: function(data) {
       $('#validationstate').addClass("btn-outline-danger");
-      $('#validationstate').text("not valide");
+      $('#validationstate').text("xml: not valide");
       //toastr['error'](JSON.stringify(data), "Validation failed")
     }
   });

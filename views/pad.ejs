@@ -32,36 +32,47 @@
     </div>
   </section>
   <nav class="navbar fixed-bottom navbar-expand-sm navbar-dark bg-dark">
-    <a class="navbar-brand" href="#">a-h-e</a>
+    <a class="navbar-brand" href="/">a-h-e</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-  <span class="navbar-toggler-icon"></span>
-</button>
+      <span class="navbar-toggler-icon"></span>
+    </button>
     <div class="collapse navbar-collapse" id="navbarSupportedContent">
       <ul class="navbar-nav mr-auto">
         <li class="nav-item">
-          <a class="nav-link" href="#" role="button" data-toggle="modal" data-target="#helpModal">
-          Help
-        </a>
+          <a class="nav-link" href="/" role="button" >
+            Home
+          </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" role="button" data-toggle="modal" data-target="#helpModal">
+            Help
+          </a>
+        </li>
+        <% if(config.auto_validate) { %>
         <li class="nav-item dropup">
-        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-          XML
-        </a>
-        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-          <a class="dropdown-item" id="save-xml" href="#">Save</a>
-          <div class="dropdown-divider"></div>
-          <a class="dropdown-item" id="validate-xml" href="#">Validate</a>
-        </div>
-      </li>
-      <% if(config.auto_validate) { %>
-      <li class="nav-item">
-        <button class="btn btn-outline-error" id="validationstate" disabled>not valide</button>
-      </li>
-      <% } %>
+          <a class="nav-link" href="#" id="save-xml" role="button">
+            store XML
+          </a>
+        </li>
+        <li class="nav-item">
+          <button class="btn btn-outline-error" id="validationstate" disabled>not valide</button>
+        </li>
+        <% }  else { %>
+          <li class="nav-item dropup">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              XML
+            </a>
+            <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+              <a class="dropdown-item" id="save-xml" href="#">Save</a>
+              <div class="dropdown-divider"></div>
+              <a class="dropdown-item" id="validate-xml" href="#">Validate</a>
+            </div>
+          </li>
+        <% } %>
       </ul>
       <span class="navbar-text" style="margin-right: 15px;">
-      Welcome <%= user %>!
-    </span>
+        Welcome <%= user %>!
+      </span>
       <button class="btn btn-outline-success my-2 my-sm-0" id="logout">logout</button>
     </div>
   </nav>
@@ -72,8 +83,8 @@
         <div class="modal-header">
           <h5 class="modal-title">Help</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
+            <span aria-hidden="true">&times;</span>
+          </button>
         </div>
         <div class="modal-body">
           <table class="table table-hover table-sm">
@@ -113,30 +124,30 @@
               <tr>
                 <th scope="row">&lt;DL&gt;&lt;DT&gt;&lt;DD&gt;</th>
                 <td>
-                    ;; {title 1} description <br/>
-                    ;; {title 2}  description 2 <br/>
-                    ;; {title}  description || description 2 to this <br/>
+                  ;; {title 1} description <br />
+                  ;; {title 2} description 2 <br />
+                  ;; {title} description || description 2 to this <br />
                 </td>
-                <td>DL definition list<br/> DT definition title<br/> DD definition description
+                <td>DL definition list<br /> DT definition title<br /> DD definition description
                 </td>
               </tr>
               <tr>
                 <th scope="row">&lt;H&gt;</th>
                 <td>
-                  .. Text<br/> .. {ID} Text
+                  .. Text<br /> .. {ID} Text
                 </td>
                 <td></td>
               </tr>
               <tr>
                 <th scope="row">&lt;H1&gt;&lt;H2&gt;&lt;H3&gt;&lt;H4&gt;&lt;H5&gt;&lt;H6&gt;</th>
                 <td>
-                  # heading h1 <br/> ## heading h2 ... <br/> # {ID} heading h1 <br/> # {ID,SPLIT} heading h1
+                  # heading h1 <br /> ## heading h2 ... <br /> # {ID} heading h1 <br /> # {ID,SPLIT} heading h1
                 </td>
                 <td></td>
               </tr>
               <tr>
                 <th scope="row">&lt;HR /&gt;</th>
-                <td>Some Content<br/><br/>---</td>
+                <td>Some Content<br /><br />---</td>
                 <td></td>
               </tr>
               <tr>
@@ -161,7 +172,7 @@
               </tr>
               <tr>
                 <th scope="row">&lt;OL&gt;&lt;UL&gt;&lt;LI&gt;</th>
-                <td>ordered list:<br/>1. first item</br/>2. second item <br/><br/> unordered list: <br/> * first item<br/>* second item</td>
+                <td>ordered list:<br />1. first item</br />2. second item <br /><br /> unordered list: <br /> * first item<br />* second item</td>
                 <td></td>
               </tr>
               <tr>
@@ -172,28 +183,28 @@
               <tr>
                 <th scope="row">&lt;P&gt;</th>
                 <td>
-                  &gt; This will be on line<br/> &gt;
-                  <br/> &gt; This will be the next line in this paragraph<br/>
-                  <br/><br/> &gt; This will be the next paragraph<br/> &gt;
-                  <br/> &gt; This will be the next line in this paragraph<br/>
+                  &gt; This will be on line<br /> &gt;
+                  <br /> &gt; This will be the next line in this paragraph<br />
+                  <br /><br /> &gt; This will be the next paragraph<br /> &gt;
+                  <br /> &gt; This will be the next line in this paragraph<br />
                 </td>
                 <td></td>
               </tr>
               <tr>
                 <th scope="row">&lt;PP&gt;</th>
-                <td>~{TYPE} TITLE<br/> ... <br/>Content<br/> ... <br/>~</td>
+                <td>~{TYPE} TITLE<br /> ... <br />Content<br /> ... <br />~</td>
                 <td></td>
               </tr>
               <tr>
                 <th scope="row">&lt;PRE&gt;</th>
                 <td>
-                  ```<br/> some code<br/> ```
+                  ```<br /> some code<br /> ```
                 </td>
                 <td></td>
               </tr>
               <tr>
                 <th scope="row">&lt;PROGRAM&gt;</th>
-                <td>`<br/> some code <br/>`</td>
+                <td>`<br /> some code <br />`</td>
                 <td></td>
               </tr>
               <tr>
@@ -237,7 +248,7 @@
 
   <script src="/main.js"></script>
   <script src="/pad.js"></script>
-  <% if(config.auto_validate) { %> 
+  <% if(config.auto_validate) { %>
   <script src="/validation.js"></script>
   <% } %>
   <script>
