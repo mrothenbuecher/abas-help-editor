@@ -10,6 +10,7 @@
   </title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css" />
+  <link href="/tln.min.css" rel="stylesheet">
   <link href="/style.css" rel="stylesheet">
   <link href="/abas-style.css" rel="stylesheet">
 </head>
@@ -243,6 +244,7 @@
     var pd = null;
     var username = "<%= user %>";
   </script>
+  <script src="/tln.min.js"></script>
   <script src="/dist/bundle.js"></script>
   <script src="/markdown/abas-markdown-xml.js"></script>
   <script src="/markdown/abas-markdown-html.js"></script>
@@ -253,6 +255,7 @@
   <script src="/validation.js"></script>
   <% } %>
   <script>
+    TLN.append_line_numbers('pad')
     $(document).ready(function() {
       $('#logout').click(function() {
         $.post("/auth").done(function() {

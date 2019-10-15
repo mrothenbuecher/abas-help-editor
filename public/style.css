@@ -57,7 +57,7 @@ html, body, section, .full-height {
     margin: 0;
     padding: 0;
     height: 100%;
-    width: 100%;
+    /*width: 100%;*/
 }
 
 #xml-content {
@@ -133,4 +133,8 @@ html, body, section, .full-height {
 .split, .gutter.gutter-horizontal {
     height: 100%;
     float:left;
+}
+
+.tln-wrapper {
+    padding: 0px 5px 35px;
 }
