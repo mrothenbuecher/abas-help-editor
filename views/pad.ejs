@@ -18,16 +18,16 @@
 <body class="container-fluid">
   <section id="container" class="row">
     <div class="full-height" id="input">
-      <textarea autofocus id="pad"></textarea>
+      <textarea autofocus id="pad" class="syncscroll" name="pads"></textarea>
       <div class="info">Input</div>
     </div>
     <div class="full-height" id="output">
-      <div id="html">
+      <div id="html" class="syncscroll" name="pads">
         <div id="html-content"></div>
         <div class="info"><a href="#" id="prev-window">Preview</a></div>
       </div>
-      <div id="xml">
-        <textarea autofocus id="xml-content" disabled></textarea>
+      <div id="xml" style="overflow:hidden;">
+        <textarea class="syncscroll" name="pads" autofocus id="xml-content" disabled></textarea>
         <div class="info"><a href="#" id="xml-window">XML</a></div>
       </div>
     </div>
@@ -245,6 +245,7 @@
     var username = "<%= user %>";
   </script>
   <script src="/tln.min.js"></script>
+  <!-- <script src="/syncscroll.js"></script> -->
   <script src="/dist/bundle.js"></script>
   <script src="/markdown/abas-markdown-xml.js"></script>
   <script src="/markdown/abas-markdown-html.js"></script>

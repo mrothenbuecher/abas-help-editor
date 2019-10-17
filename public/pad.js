@@ -203,8 +203,7 @@ $(document).ready(function() {
       prevWindow.document.write('<html><head><link rel="shortcut icon" href="/favicon.ico"><title>preview</title><link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet"></head><body>' + $('#html-content').get(0).outerHTML + "</body></html>");
       prevWindow.document.close();
     }
-
-    //xmlArea.innerHTML = xml.encodeHTML().replace(/(?:\r\n|\r|\n)/g, '<br />');
+    
     $xmlArea.val(xml);
 
   };

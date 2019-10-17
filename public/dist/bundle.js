@@ -2981,7 +2981,7 @@ Connection.prototype._firstSnapshotRequest = function () {
  *
  * @param collection - the collection name of the snapshot
  * @param id - the ID of the snapshot
- * @param version (optional) - the version number to fetch
+ * @param version (optional) - the version number to fetch. If null, the latest version is fetched.
  * @param callback - (error, snapshot) => void, where snapshot takes the following schema:
  *
  * {
@@ -3009,7 +3009,7 @@ Connection.prototype.fetchSnapshot = function(collection, id, version, callback)
  *
  * @param collection - the collection name of the snapshot
  * @param id - the ID of the snapshot
- * @param timestamp (optional) - the timestamp to fetch
+ * @param timestamp (optional) - the timestamp to fetch. If null, the latest version is fetched.
  * @param callback - (error, snapshot) => void, where snapshot takes the following schema:
  *
  * {
@@ -3249,11 +3249,14 @@ Doc.prototype.ingestSnapshot = function(snapshot, callback) {
 };
 
 Doc.prototype.whenNothingPending = function(callback) {
-  if (this.hasPending()) {
-    this.once('nothing pending', callback);
-    return;
-  }
-  callback();
+  var doc = this;
+  process.nextTick(function() {
+    if (doc.hasPending()) {
+      doc.once('nothing pending', callback);
+      return;
+    }
+    callback();
+  });
 };
 
 Doc.prototype.hasPending = function() {
@@ -3964,9 +3967,12 @@ Doc.prototype._hardRollback = function(err) {
 };
 
 Doc.prototype._clearInflightOp = function(err) {
-  var called = callEach(this.inflightOp.callbacks, err);
+  var inflightOp = this.inflightOp;
 
   this.inflightOp = null;
+
+  var called = callEach(inflightOp.callbacks, err);
+
   this.flush();
   this._emitNothingPending();
 
@@ -4346,7 +4352,12 @@ var SUPPORTED_METHODS = [
 ];
 
 function Logger() {
-  this.setMethods(console);
+  var defaultMethods = {};
+  SUPPORTED_METHODS.forEach(function (method) {
+    // Deal with Chrome issue: https://bugs.chromium.org/p/chromium/issues/detail?id=179628
+    defaultMethods[method] = console[method].bind(console);
+  });
+  this.setMethods(defaultMethods);
 }
 module.exports = Logger;
 
