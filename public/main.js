@@ -51,21 +51,21 @@ if (!String.prototype.toARGB) {
   };
 }
 
-(function ($, undefined) {
-    $.fn.getCursorPosition = function () {
-        var el = $(this).get(0);
-        var pos = 0;
-        if ('selectionStart' in el) {
-            pos = el.selectionStart;
-        } else if ('selection' in document) {
-            el.focus();
-            var Sel = document.selection.createRange();
-            var SelLength = document.selection.createRange().text.length;
-            Sel.moveStart('character', -el.value.length);
-            pos = Sel.text.length - SelLength;
-        }
-        return pos;
+(function($, undefined) {
+  $.fn.getCursorPosition = function() {
+    var el = $(this).get(0);
+    var pos = 0;
+    if ('selectionStart' in el) {
+      pos = el.selectionStart;
+    } else if ('selection' in document) {
+      el.focus();
+      var Sel = document.selection.createRange();
+      var SelLength = document.selection.createRange().text.length;
+      Sel.moveStart('character', -el.value.length);
+      pos = Sel.text.length - SelLength;
     }
+    return pos;
+  }
 })(jQuery);
 
 var prevWindow = null;
@@ -81,10 +81,14 @@ $(document).ready(function() {
   });
 
 
-  Split(['#html', '#xml'], {
-    sizes: [50, 50],
-    direction: 'vertical'
-  });
+  if (!config.hide_xml_preview) {
+    Split(['#html', '#xml'], {
+      sizes: [50, 50],
+      direction: 'vertical'
+    });
+  }
+
+  TLN.append_line_numbers('pad')
 
   var $pad = $('#pad');
 
@@ -127,15 +131,15 @@ $(document).ready(function() {
     return false;
   });
 
-  $('#prev-window').click(function(ev){
+  $('#prev-window').click(function(ev) {
     prevWindow = window.open("", "preview", "width=300,height=400,scrollbars=yes,titlebar=no,location=no");
-    prevWindow.document.write('<html><head><link rel="shortcut icon" href="/favicon.ico"><title>preview</title><link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet"></head><body>'+$('#html-content').get(0).outerHTML+'</body></html>');
+    prevWindow.document.write('<html><head><link rel="shortcut icon" href="/favicon.ico"><title>preview</title><link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet"></head><body>' + $('#html-content').get(0).outerHTML + '</body></html>');
     prevWindow.document.close();
   });
 
-  $('#xml-window').click(function(ev){
+  $('#xml-window').click(function(ev) {
     xmlWindow = window.open("", "xml", "width=300,height=400,scrollbars=yes,titlebar=no,location=no");
-    xmlWindow.document.write('<html><head><link rel="shortcut icon" href="/favicon.ico"><link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet"><div id="xml"></head><body><textarea autofocus id="xml-content" disabled>'+$('#xml-content').val()+'</textarea></div></body></html>');
+    xmlWindow.document.write('<html><head><link rel="shortcut icon" href="/favicon.ico"><link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet"><div id="xml"></head><body><textarea autofocus id="xml-content" disabled>' + $('#xml-content').val() + '</textarea></div></body></html>');
     xmlWindow.document.close();
   });
 
@@ -143,7 +147,7 @@ $(document).ready(function() {
     $.ajax({
       url: '/validate/xml/',
       data: JSON.stringify({
-        'xml': $xmlArea.val()
+        'xml': $xmlArea.data("xml")
       }),
       cache: false,
       contentType: "application/json; charset=utf-8",
@@ -163,8 +167,8 @@ $(document).ready(function() {
     });
   });
 
-  function storeXml(){
-    var xmlContent = $xmlArea.val();
+  function storeXml() {
+    var xmlContent = $xmlArea.data("xml");
     $.ajax({
       url: '/store/xml/' + docName,
       data: JSON.stringify({
@@ -194,14 +198,16 @@ $(document).ready(function() {
     storeXml();
   });
 
-  hotkeys.filter = ({ target }) => {
+  hotkeys.filter = ({
+    target
+  }) => {
     /*console.log(target.tag);
     return (target.tagName === 'INPUT') ;
     */
     return true;
   }
 
-  hotkeys('ctrl+s', function (event, handler){
+  hotkeys('ctrl+s', function(event, handler) {
     event.preventDefault();
     storeXml();
   });

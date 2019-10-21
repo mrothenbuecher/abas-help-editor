@@ -32,6 +32,7 @@ node js 9.8.0 or higher and npm 5.8.0
 | auth            | array : empty   | array of objects `{"username":"...","password":"..."},...` <br/> if empty only the username will be requested       |
 | public          | bool : false    | false means only via localhost reachable, true means public                                                         |
 | auto_validate   | bool : false    | automatic validate xml                                                                                              |
+| hide_xml_preview| bool : true     | hide the xml preview?                                                                                               |
 
 ## TODO
 - support for id's from other files

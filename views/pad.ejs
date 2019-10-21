@@ -18,18 +18,25 @@
 <body class="container-fluid">
   <section id="container" class="row">
     <div class="full-height" id="input">
-      <textarea autofocus id="pad" class="syncscroll" name="pads"></textarea>
+      <textarea autofocus id="pad"></textarea>
       <div class="info">Input</div>
     </div>
     <div class="full-height" id="output">
-      <div id="html" class="syncscroll" name="pads">
+      <div id="html">
         <div id="html-content"></div>
         <div class="info"><a href="#" id="prev-window">Preview</a></div>
       </div>
+      <% if(!config.hide_xml_preview) { %>
       <div id="xml" style="overflow:hidden;">
+        <!--
         <textarea class="syncscroll" name="pads" autofocus id="xml-content" disabled></textarea>
+        -->
+        <div id="xml-content"></div>
         <div class="info"><a href="#" id="xml-window">XML</a></div>
       </div>
+      <% }  else { %>
+        <div id="xml-content" style="display:none;"></div>
+      <% } %>
     </div>
   </section>
   <nav class="navbar fixed-bottom navbar-expand-sm navbar-dark bg-dark">
@@ -245,7 +252,6 @@
     var username = "<%= user %>";
   </script>
   <script src="/tln.min.js"></script>
-  <!-- <script src="/syncscroll.js"></script> -->
   <script src="/dist/bundle.js"></script>
   <script src="/markdown/abas-markdown-xml.js"></script>
   <script src="/markdown/abas-markdown-html.js"></script>
@@ -256,7 +262,10 @@
   <script src="/validation.js"></script>
   <% } %>
   <script>
-    TLN.append_line_numbers('pad')
+
+    var user = "<%= user %>";
+    var config = <%- JSON.stringify(config) %>;
+
     $(document).ready(function() {
       $('#logout').click(function() {
         $.post("/auth").done(function() {

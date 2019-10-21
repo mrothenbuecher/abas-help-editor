@@ -122,6 +122,9 @@ $(document).ready(function() {
     }
 
     // insert carets
+
+    var me = false;
+
     if (carets) {
       keysSorted = Object.keys(carets).sort(function(a, b) {
         return carets[a] - carets[b]
@@ -137,7 +140,12 @@ $(document).ready(function() {
       for (var i = 0; i < keysSorted.length; i++) {
         var cp = carets[keysSorted[i]] + (2 * i);
         if (cp != null && cp >= 0) {
-          markdownText = markdownText.replace(/\$\$/, '<span class="cursor" style="color:#' + keysSorted[i].toARGB() + ';">|<i>' + keysSorted[i] + '</i></span>');
+          //FIXME if two user have the same name this won't work
+          if(keysSorted[i]==user){
+            me = true;
+          }
+          markdownText = markdownText.replace(/\$\$/, '<span '+(keysSorted[i]==user?'id="me"':'')+' class="cursor" style="color:#' + keysSorted[i].toARGB() + ';">|<i>' + keysSorted[i] + '</i></span>');
+          //markdownText = markdownText.replace(/\$\$/, '<span class="cursor" style="color:#' + keysSorted[i].toARGB() + ';">|<i>' + keysSorted[i] + '</i></span>');
         }
       }
 
@@ -196,17 +204,40 @@ $(document).ready(function() {
 
       });
     }
+
     $htmlArea.html($html.html());
+
+    if(me){
+      $htmlArea.animate({
+          scrollTop: $("#me").offset().top - $htmlArea.offset().top + $htmlArea.scrollTop()
+      }, 100);
+    }
 
     //Update subwindow
     if (prevWindow) {
       prevWindow.document.write('<html><head><link rel="shortcut icon" href="/favicon.ico"><title>preview</title><link href="/style.css" rel="stylesheet"><link href="/abas-style.css" rel="stylesheet"></head><body>' + $('#html-content').get(0).outerHTML + "</body></html>");
       prevWindow.document.close();
     }
-    
-    $xmlArea.val(xml);
+
+    // console.log(xml);
+    $xmlArea.html(escapeHtml(xml));
+    $xmlArea.data("xml",xml);
+
+    //$xmlArea.val(xml);
 
   };
+
+  function escapeHtml(unsafe) {
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;")
+         .replace(/(\n|\r\n)/g, "<br/>")
+         .replace(/\t/g, "&emsp;")
+         .replace(/ /g, "&nbsp;");
+ }
 
   var didChangeOccur = function() {
     if (previousMarkdownValue != $pad.val()) {

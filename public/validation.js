@@ -1,5 +1,5 @@
 $(document).on("validation_call", function(event, arg1){
-  console.log("validate", arg1);
+  //console.log("validate", arg1);
 
   $('#validationstate').removeClass("btn-outline-success");
   $('#validationstate').removeClass("btn-outline-danger");
@@ -32,8 +32,8 @@ $(document).on("validation_call", function(event, arg1){
       $('#validationstate').text("xml: not valide");
       //toastr['error'](JSON.stringify(data), "Validation failed")
     }
-  }).always(function( data, textStatus, errorThrown ) { 
-      console.log("Data: ", data);
+  }).always(function( data, textStatus, errorThrown ) {
+      //console.log("Data: ", data);
   });
 
 });
