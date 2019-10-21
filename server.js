@@ -86,6 +86,7 @@ function createDoc(callback, docName, username) {
 
   // for caret
   var doc2 = connection.get('abas-help-editor-info', docName);
+
   doc2.fetch(function(err) {
     if (err) throw err;
     //doc2.type = "ot-json0";
@@ -150,8 +151,23 @@ function startServer() {
         // auth only with user name
         if (config.auth.length == 0) {
           if (req.body.username) {
-            req.session.user = req.body.username;
-            response.error = false;
+
+            var store = req.sessionStore;
+            var doubleName = false;
+            // prevent double usernames
+            for(var sid in store.sessions){
+              var ses = JSON.parse(store.sessions[sid]);
+              if(ses.user == req.body.username){
+                doubleName = true;
+                break;
+              }
+            }
+            if(!doubleName){
+              req.session.user = req.body.username;
+              response.error = false;
+            }else{
+              response.reason = "username already taken";
+            }
           } else {
             response.reason = "username required";
           }
@@ -164,6 +180,15 @@ function startServer() {
             var pw = req.body.password;
             config.auth.forEach(function(entry, index) {
               if (entry.username === user && entry.password === pw) {
+                //end old session
+                var store = req.sessionStore;
+                for(var sid in store.sessions){
+                    var ses = JSON.parse(store.sessions[sid]);
+                    if(ses.user==req.body.username) {
+                        store.destroy(sid, function (err, dat) {
+                        });
+                    }
+                }
                 req.session.user = req.body.username;
                 response.error = false;
               }
