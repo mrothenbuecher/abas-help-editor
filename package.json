@@ -26,7 +26,7 @@
     "express": ">=4.14.0",
     "express-fileupload": ">=1.1.9",
     "express-session": ">=1.15.6",
-    "node-libxml": ">=3.2.3",
+    "node-libxml": ">=3.2.5",
     "npm": ">=6.14.6",
     "pretty-data": ">=0.40.0",
     "serve-favicon": ">=2.4.5",
