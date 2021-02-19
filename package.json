@@ -4,7 +4,7 @@
   "description": "Editor for the abas ERP custom help files",
   "main": "server.js",
   "scripts": {
-    "build_client": "node_modules/.bin/browserify client.js -o public/dist/bundle.js",
+    "build_client": "node_modules\\.bin\\browserify client.js -o public\\dist\\bundle.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "run_debug": "node server.js",
     "start": "npm run build_client && node server.js",
@@ -22,12 +22,13 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": ">=1.18.2",
+    "browserify": ">=13.0.1",
     "ejs": ">=2.5.7",
     "express": ">=4.14.0",
     "express-fileupload": ">=1.1.9",
     "express-session": ">=1.15.6",
-    "node-libxml": ">=3.2.5",
-    "npm": ">=6.14.6",
+    "node-libxml": "^4.1.2",
+    "npm": "^7.5.4",
     "pretty-data": ">=0.40.0",
     "serve-favicon": ">=2.4.5",
     "sharedb": "^1.0.0-beta",
@@ -36,8 +37,7 @@
     "sharedb-string-binding": "^1.0.0",
     "tmp": ">=0.0.33",
     "websocket-json-stream": ">=0.0.1",
-    "ws": ">=1.1.0",
-    "browserify": ">=13.0.1"
+    "ws": ">=1.1.0"
   },
   "devDependencies": {}
 }
